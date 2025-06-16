@@ -53,19 +53,18 @@ export default function HeroSection() {
                             <div className="relative py-6 md:w-[calc(100%-11rem)]">
     <InfiniteSlider speedOnHover={20} speed={40} gap={112}>
         {[
-            ['aws', 20],
-            ['comptia', 20],        
-            ['azure', 20],   
-            ['cisco', 20],
-            ['azureDevops', 20],        
-            ['googleCloud', 20],
-            ['microsoft', 20],
-            ['github', 20],     
+            ['aws', 30],
+            ['comptia', 30],        
+            ['azure', 30],   
+            ['cisco', 30],
+            ['devops', 30],        
+            ['cloud', 30],
+            ['microsoft', 30],    
         ].map(([name, height]) => (
             <div className="flex" key={name}>
                 <img
                     className="mx-auto dark:invert"
-                    src={`/assets/logos/${name}.svg`} 
+                    src={`/assets/landing/logo-${name}.svg`} 
                     alt={`${name} Logo`}
                     height={Number(height)}
                 />

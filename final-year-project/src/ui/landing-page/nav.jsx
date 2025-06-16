@@ -22,8 +22,8 @@ export const HeroHeader = () => {
             <nav className="mx-auto max-w-6xl px-6">
                 <div className="flex items-center justify-between py-4">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2">
-                        <Image src="/assets/logos/logo-certify.svg" alt="Logo" width={150} height={150} />
+                    <Link href="#Home" className="flex items-center gap-2">
+                        <Image src="/assets/landing/logo-certify.svg" alt="Logo" width={150} height={150} />
                     </Link>
 
                     {/* Desktop Menu & Buttons */}
@@ -31,7 +31,7 @@ export const HeroHeader = () => {
                         <ul className="flex gap-x-8 text-sm">
                             {menuItems.map((item) => (
                                 <li key={item.name}>
-                                    <Link href={item.href} className="text-muted-foreground hover:text-accent-foreground duration-150">
+                                    <Link href={item.href} className="text-muted-foreground hover:text-primary duration-150">
                                         {item.name}
                                     </Link>
                                 </li>
