@@ -22,10 +22,14 @@ export default function ContactUs() {
               <h3 className="mt-6 font-medium">Email</h3>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600">
+              <a
+                href="mailto:akashmoradiya3444@gmail.com"
+                className="text-sm text-gray-600 hover:text-green-600 transition-colors hover:underline"
+              >
                 akashmoradiya3444@gmail.com
-              </p>
+              </a>
             </CardContent>
+
           </Card>
 
           <Card className="group shadow-md">
@@ -36,10 +40,16 @@ export default function ContactUs() {
               <h3 className="mt-6 font-medium">Location</h3>
             </CardHeader>
             <CardContent>
-              <p className="mt-3 text-sm text-gray-600">
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=100+Smith+Street+Collingwood+VIC+3066+AU"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-gray-600 hover:text-green-600 transition-colors hover:underline"
+              >
                 100 Smith Street Collingwood VIC 3066 AU
-               </p>
+              </a>
             </CardContent>
+
           </Card>
 
           <Card className="group shadow-md">
@@ -50,10 +60,14 @@ export default function ContactUs() {
               <h3 className="mt-6 font-medium">Phone</h3>
             </CardHeader>
             <CardContent>
-              <p className="mt-3 text-sm text-gray-600">
+              <a
+                href="tel:+233538123456"
+                className="text-sm text-gray-600 hover:text-green-600 transition-colors hover:underline"
+              >
                 +233 (0) 538 123 456
-              </p>
+              </a>
             </CardContent>
+
           </Card>
         </div>
       </div>

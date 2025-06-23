@@ -14,7 +14,7 @@ export default function TestimonialsSection() {
                         <div className="mt-12 flex items-center justify-center gap-6">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage
-                                    src="/assets/images/img-avatar.png"
+                                    src="/assets/landing/img-avatar.png"
                                     alt="A profile picture of John Doe"
                                     height="400"
                                     width="400"

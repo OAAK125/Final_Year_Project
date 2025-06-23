@@ -31,7 +31,7 @@ export const HeroHeader = () => {
                         <ul className="flex gap-x-8 text-sm">
                             {menuItems.map((item) => (
                                 <li key={item.name}>
-                                    <Link href={item.href} className="text-muted-foreground hover:text-primary duration-150">
+                                    <Link href={item.href} className="text-muted-foreground hover:text-primary hover:font-bold duration-150">
                                         {item.name}
                                     </Link>
                                 </li>

@@ -7,6 +7,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import {
+  Book,
     Brain,
   ChartBarIcon,
   Database,
@@ -15,6 +16,7 @@ import {
   GraduationCap,
   IdCard,
   MessageCircle,
+  MessageCircleQuestionIcon,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
@@ -25,20 +27,12 @@ export default function Features() {
 
   const images = {
     'item-1': {
-      image: '/assets/images/img-categories.svg',
-      alt: 'Database visualization',
+      image: '/assets/landing/img-categories.svg',
+      alt: 'Trending Quizzes',
     },
     'item-2': {
-      image: '/assets/images/img-categories.svg',
+      image: '/assets/landing/img-categories.svg',
       alt: 'Security authentication',
-    },
-    'item-3': {
-      image: '/assets/images/img-categories.svg',
-      alt: 'Identity management',
-    },
-    'item-4': {
-      image: '/assets/images/img-categories.svg',
-      alt: 'Analytics dashboard',
     },
   }
 
@@ -63,48 +57,26 @@ export default function Features() {
             <AccordionItem value="item-1">
               <AccordionTrigger>
                 <div className="flex items-center gap-2 text-base">
-                  <GraduationCap className="w-4 h-4" />
-                  Certification Quizzes & Mock Exams
+                  <Book className="w-4 h-4" />
+                  Certification Tests & Practice Topics
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                Sharpen your knowledge and prepare for your certification exams with our extensive question bank and realistic, timed mock tests.
+                Sharpen your skills and get exam-ready with our extensive collection of practice quizzes  tailored to popular certifications like CompTIA, Cisco, and AWS. 
+                Dive deep into specific topics, filter by difficulty, and master key concepts to ace your exams. 
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-2">
               <AccordionTrigger>
                 <div className="flex items-center gap-2 text-base">
-                  <Brain className="w-4 h-4" />
-                  Adaptive Practice & Performance Insights
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                Experience personalized learning as our quizzes adapt to your skill level, offering harder or easier questions based on your performance.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-3">
-              <AccordionTrigger>
-                <div className="flex items-center gap-2 text-base">
                   <MessageCircle className="w-4 h-4" />
-                  Community Discussions
+                  Trending Forum Topics & Categories
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                Connect with a vibrant community of tech professionals. Create and reply to discussion threads on various certification topics.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-4">
-              <AccordionTrigger>
-                <div className="flex items-center gap-2 text-base">
-                  <FilePlus className="w-4 h-4" />
-                  Resource Exchange 
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                Easily share images, videos, and code snippets, and discover valuable content through our advanced search and tagging system. 
+               Engage with a vibrant community in our discussion forums, categorized by certification-realted questions and answers. 
+               Explore recent threads, trending discussions, and get answers to your questions from peers and experts
               </AccordionContent>
             </AccordionItem>
           </Accordion>

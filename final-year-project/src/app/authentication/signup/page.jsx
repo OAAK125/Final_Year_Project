@@ -9,15 +9,13 @@ export default function AuthenticationSignupPage() {
       <form className="m-auto w-full max-w-sm rounded-lg border bg-card p-6 shadow-sm">
         {/* Logo and Title */}
         <div className="space-y-2 text-center">
-          <Link href="/" aria-label="Go home">
             <Image
-              src="/assets/logos/logo-symbol.svg"
+              src="/assets/authentication/logo-symbol.svg"
               alt="CertifyPrep Logo"
               width={48}
               height={48}
               className="mx-auto"
             />
-          </Link>
           <br />
           <h1 className="text-xl font-semibold">Welcome to Certify Prep</h1>
           <p className="text-sm text-muted-foreground">
@@ -26,10 +24,10 @@ export default function AuthenticationSignupPage() {
         </div>
 
         {/* OAuth Buttons */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="mt-6 grid grid-cols-2 gap-3">
           <Button variant="outline" type="button" className="flex items-center justify-center gap-2">
             <Image
-              src="/assets/logos/google.svg"
+              src="/assets/authentication/google.svg"
               alt="Google logo"
               width={20}
               height={20}
@@ -38,16 +36,7 @@ export default function AuthenticationSignupPage() {
 
           <Button variant="outline" type="button" className="flex items-center justify-center gap-2">
             <Image
-              src="/assets/logos/apple.svg"
-              alt="Apple logo"
-              width={20}
-              height={20}
-            />
-          </Button>
-
-          <Button variant="outline" type="button" className="flex items-center justify-center gap-2">
-            <Image
-              src="/assets/logos/github-s.svg"
+              src="/assets/authentication/github.svg"
               alt="Github logo"
               width={20}
               height={20}
@@ -96,11 +85,11 @@ export default function AuthenticationSignupPage() {
         </div>
         <p className="text-xs text-muted-foreground p-4 text-center">
             By creating an account, you agree to our{' '}
-            <Link href="/terms" className="underline">
+            <Link href="/terms" className="underline hover:text-primary">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="/privacy" className="underline">
+            <Link href="/privacy" className="underline hover:text-primary">
               Privacy Policy
             </Link>.
           </p>

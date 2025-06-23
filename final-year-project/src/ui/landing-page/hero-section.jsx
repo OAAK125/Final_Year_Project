@@ -33,11 +33,11 @@ export default function HeroSection() {
                                     </Button>
                                 </div>
                             </div>
-                            {/* Change h-56 & w-full for mobile and lg:h-max & w-2/3 for desktop */}
-                             {/* <Image
+                            {/* Change h-56 & w-full for mobile and lg:h-max & w-2/3 for desktop
+                             <Image
                                 className="-z-10 order-last ml-auto h-56 w-full object-cover invert sm:h-96 lg:absolute lg:inset-0 lg:-right-20 lg:-top-96 lg:order-last lg:h-max lg:w-2/3 lg:object-contain dark:mix-blend-lighten dark:invert-0"
-                                src="/assets/images/img-PhoneMockup.png"
-                                alt="Abstract Object"
+                                src="/assets/landing/img-hero.svg"
+                                alt="Students studying together"
                                 height={100}
                                 width={100}
                             /> */}
