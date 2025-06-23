@@ -67,8 +67,8 @@ export default function AuthenticationLoginPage() {
             <Input id="password" type="password" name="password" required />
           </div>
 
-          <Button className="w-full" type="submit" href="/dashboard">
-            Sign In
+          <Button className="w-full" type="submit">
+            Log In
           </Button>
         </div>
 

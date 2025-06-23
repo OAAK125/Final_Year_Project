@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button' 
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -40,6 +41,13 @@ export default function FooterSection() {
         <span className="block text-center text-sm text-gray-500 dark:text-gray-500">
           © {new Date().getFullYear()} CertifyPrep, All rights reserved
         </span>
+
+        {/* Dashboard Shortcut Button */}
+        <div className="mt-4 flex justify-center">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/dashboard">Go to Dashboard</Link>
+          </Button>
+        </div>
       </div>
     </footer>
   )
