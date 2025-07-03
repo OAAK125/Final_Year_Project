@@ -29,12 +29,12 @@ export default function PersonalizeTop() {
   const [selectedCategory, setSelectedCategory] = React.useState("AWS");
 
   return (
-    <section className="py-5 w-[50%] mx-auto text-center">
+    <section className="py-5 w-[90%] mx-auto text-center md:w-[90%] lg:w-[60%]">
       <div className="flex flex-col items-center text-center border border-border rounded-xl p-4 md:rounded-xl lg:p-6">
         <h3 className="text-xl font-semibold">
           Personalize Your Quiz Experience
         </h3>
-        <p className="text-sm my-2 text-muted-foreground">
+        <p className="text-sm my-2 text-muted-foreground py-2">
           Tailor your quiz based on your goals and preferences.
         </p>
 
