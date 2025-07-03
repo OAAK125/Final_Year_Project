@@ -14,7 +14,7 @@ import data from "./data.json";
 const RadarChart = dynamic(() => import("./radar-chart"), { ssr: false });
 
 const HomeTop = ({
-  heading = "Continue Last Test",
+  heading = "Retake Last Test",
   features = [
     {
       id: "feature-1",
@@ -76,7 +76,7 @@ const HomeTop = ({
         {/* Radar Chart – spans 2 columns and all 3 rows */}
         <div className="md:col-span-2 md:row-span-3 border border-border rounded-xl overflow-hidden flex flex-col justify-between">
           <div className="p-6 md:p-8 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-items-normal gap-3">
               <h3 className="text-xl font-semibold">
                 Your Skill Proficiency Overview
               </h3>

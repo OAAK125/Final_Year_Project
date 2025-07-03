@@ -4,6 +4,7 @@ import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { usePathname } from "next/navigation"
 
 import {
   Sidebar,
@@ -17,7 +18,6 @@ import {
 
 import { NavUser } from "@/ui/quiz-dashboard/nav-user"
 
-// React Icons
 import {
   BiHome,
   BiSolidHome,
@@ -37,47 +37,44 @@ const user = {
 const navMain = [
   {
     name: "Home",
-    href: "#",
+    href: "/dashboard",
     icon: BiHome,
     solidIcon: BiSolidHome,
-    active: true,
   },
 ]
 
 const quizMenu = [
   {
     name: "Practice Tests",
-    href: "#",
+    href: "/dashboard/practice",
     icon: BiSpreadsheet,
     solidIcon: BiSolidSpreadsheet,
-    active: false,
   },
   {
-    name: "Personalized Quiz",
-    href: "#",
+    name: "Personalized Insights",
+    href: "/dashboard/personalized",
     icon: BiSlider,
     solidIcon: null,
-    active: false,
   },
   {
     name: "Bookmarked",
-    href: "#",
+    href: "/dashboard/bookmark",
     icon: BiBookmark,
     solidIcon: BiSolidBookmark,
-    active: false,
   },
 ]
 
 const forumMenu = [
   {
     name: "Showcase",
-    href: "#",
-    icon: BiBookmark, 
-    active: false,
+    href: "/dashboard/showcase",
+    icon: BiBookmark,
   },
 ]
 
 function NavGroup({ label, items }) {
+  const pathname = usePathname()
+
   return (
     <SidebarMenu>
       {label && (
@@ -85,19 +82,21 @@ function NavGroup({ label, items }) {
           {label}
         </div>
       )}
-      {items.map(({ name, href, icon, solidIcon, active }, idx) => {
-        const IconToUse = active && solidIcon ? solidIcon : icon
+      {items.map(({ name, href, icon, solidIcon }, idx) => {
+        const isActive = pathname === href
+        const IconToUse = isActive && solidIcon ? solidIcon : icon
+
         return (
           <SidebarMenuItem key={idx}>
             <SidebarMenuButton asChild className="px-3 py-2">
               <Link
                 href={href}
-                 className={cn(
-                        'flex items-center space-x-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted',
-                        active
-                          ? 'bg-muted text-primary font-bold'
-                          : 'text-muted-foreground'
-                      )}
+                className={cn(
+                  "flex items-center space-x-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  isActive
+                    ? "bg-muted text-primary font-bold hover:cursor-default"
+                    : "text-muted-foreground"
+                )}
               >
                 <IconToUse className="h-4 w-4" />
                 <span>{name}</span>
@@ -110,17 +109,13 @@ function NavGroup({ label, items }) {
   )
 }
 
-// Main Component
 export function AppSidebar({ ...props }) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-              asChild
-            >
+            <SidebarMenuButton className="data-[slot=sidebar-menu-button]:!p-1.5" asChild>
               <div className="flex items-center gap-2">
                 <Image
                   src="/assets/quiz/logo-symbol.svg"
