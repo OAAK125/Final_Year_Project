@@ -91,7 +91,7 @@ const PracticePage = () => {
       </div>
 
       {/* Filters and Clear Link */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <Select>
           <SelectTrigger className={triggerStyle}>
             <SelectValue placeholder="Certification Type" />

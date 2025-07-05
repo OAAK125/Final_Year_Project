@@ -23,7 +23,7 @@ const BookmarkPage = () => {
         </p>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <Button variant="outline" className="text-sm px-4 py-2">
           Courses
         </Button>
