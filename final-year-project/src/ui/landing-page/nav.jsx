@@ -1,30 +1,30 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { BiMenu, BiX } from "react-icons/bi"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { BiMenu, BiX } from "react-icons/bi";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const menuItems = [
   { name: "Home", href: "#HeroSection" },
   { name: "Features", href: "#Features" },
   { name: "Categories", href: "#Categories" },
   { name: "Contact Us", href: "#ContactUs" },
-]
+];
 
 export const HeroHeader = () => {
-  const [menuState, setMenuState] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
+  const [menuState, setMenuState] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <header>
@@ -72,7 +72,7 @@ export const HeroHeader = () => {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-muted-foreground hover:text-primary hover:font-bold duration-150"
+                      className="text-muted-foreground hover:text-primary duration-150"
                     >
                       {item.name}
                     </Link>
@@ -97,7 +97,7 @@ export const HeroHeader = () => {
                         <Link
                           href={item.href}
                           onClick={() => setMenuState(false)}
-                          className="block text-muted-foreground hover:text-accent-foreground duration-150"
+                          className="block text-muted-foreground hover:text-primary duration-150"
                         >
                           {item.name}
                         </Link>
@@ -137,5 +137,5 @@ export const HeroHeader = () => {
         </div>
       </nav>
     </header>
-  )
-}
+  );
+};

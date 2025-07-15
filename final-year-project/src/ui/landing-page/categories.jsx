@@ -1,49 +1,42 @@
-'use client'
+"use client";
 
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion'
-import {
-  Book,
-    Brain,
-  ChartBarIcon,
-  Database,
-  FilePlus,
-  Fingerprint,
-  GraduationCap,
-  IdCard,
-  MessageCircle,
-  MessageCircleQuestionIcon,
-} from 'lucide-react'
-import Image from 'next/image'
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+} from "@/components/ui/accordion";
+import { Book, MessageCircle } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Features() {
-  const [activeItem, setActiveItem] = useState('item-1')
+  const [activeItem, setActiveItem] = useState("item-1");
 
   const images = {
-    'item-1': {
-      image: '/assets/landing/img-categories.svg',
-      alt: 'Trending Quizzes',
+    "item-1": {
+      image: "/assets/landing/img-quizzes.svg",
+      alt: "Trending Quizzes",
     },
-    'item-2': {
-      image: '/assets/landing/img-categories.svg',
-      alt: 'Security authentication',
+    "item-2": {
+      image: "/assets/landing/img-topics.svg",
+      alt: "Trending Topics",
     },
-  }
+  };
 
   return (
-    <section id='Categories' className="bg-zinc-50 py-12 md:py-20 lg:py-32">
+    <section id="Categories" className="bg-zinc-50 py-12 md:py-20 lg:py-32">
       <div className="mx-auto max-w-5xl px-6 space-y-16">
         <div className="text-center space-y-6 max-w-2xl mx-auto">
-          <h2 className="text-4xl font-semibold lg:text-6xl">A Learning Platform that inspires real growth</h2>
+          <h2 className="text-4xl font-semibold lg:text-6xl">
+            A Learning Platform that inspires real growth
+          </h2>
           <p>
-            Dive into real-world exam simulations and explore the vibrant discussions happening daily. 
-            These numbers show how our platform empowers you to master certifications and connect with a dynamic network of tech professionals.
+            Dive into real-world exam simulations and explore the vibrant
+            discussions happening daily. These show how our platform empowers
+            you to master certifications and connect with a dynamic network of
+            tech professionals.
           </p>
         </div>
 
@@ -62,8 +55,10 @@ export default function Features() {
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                Sharpen your skills and get exam-ready with our extensive collection of practice quizzes  tailored to popular certifications like CompTIA, Cisco, and AWS. 
-                Dive deep into specific topics, filter by difficulty, and master key concepts to ace your exams. 
+                Sharpen your skills and get exam-ready with our extensive
+                collection of practice quizzes tailored to popular
+                certifications like CompTIA, Cisco, and AWS. Dive deep into
+                specific topics and master key concepts to ace your exams.
               </AccordionContent>
             </AccordionItem>
 
@@ -75,8 +70,10 @@ export default function Features() {
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-               Engage with a vibrant community in our discussion forums, categorized by certification-realted questions and answers. 
-               Explore recent threads, trending discussions, and get answers to your questions from peers and experts
+                Engage with a vibrant community in our discussion forums,
+                categorized by certification-realted questions and answers.
+                Explore recent threads, trending discussions, and get answers to
+                your questions from peers and experts
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -90,12 +87,12 @@ export default function Features() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 6, scale: 0.98 }}
                   transition={{ duration: 0.2 }}
-                  className="w-full h-full overflow-hidden rounded-xl border shadow-md"
+                  className="w-full h-full object-contain rounded-xl border shadow-md"
                 >
                   <Image
                     src={images[activeItem].image}
                     alt={images[activeItem].alt}
-                    className="w-full h-full object-cover object-left-top"
+                    className="w-full h-full object-contain object-left-top"
                     width={1207}
                     height={929}
                   />
@@ -106,5 +103,5 @@ export default function Features() {
         </div>
       </div>
     </section>
-  )
+  );
 }

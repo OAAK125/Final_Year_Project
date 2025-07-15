@@ -1,20 +1,24 @@
-import { Button } from '@/components/ui/button' 
-import Image from 'next/image'
-import Link from 'next/link'
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Link from "next/link";
 
 const links = [
-  { title: 'Home', href: '#HeroSection' },
-  { title: 'Features', href: '#Features' },
-  { title: 'Categories', href: '#Categories' },
-  { title: 'Contact Us', href: '#ContactUs' },
-]
+  { title: "Home", href: "#HeroSection" },
+  { title: "Features", href: "#Features" },
+  { title: "Categories", href: "#Categories" },
+  { title: "Contact Us", href: "#ContactUs" },
+];
 
 export default function FooterSection() {
   return (
     <footer className="bg-zinc-50 py-16 md:py-32">
       <div className="mx-auto max-w-5xl px-6">
         {/* Logo */}
-        <Link href="#HomeSection" aria-label="Go home" className="mx-auto block w-fit">
+        <Link
+          href="#HomeSection"
+          aria-label="Go home"
+          className="mx-auto block w-fit"
+        >
           <Image
             src="/assets/landing/logo-certify.svg"
             alt="Logo"
@@ -30,7 +34,7 @@ export default function FooterSection() {
             <Link
               key={link.title}
               href={link.href}
-              className="hover:text-primary hover:font-bold dark:hover:text-white transition-colors"
+              className="hover:text-primary dark:hover:text-white transition-colors"
             >
               {link.title}
             </Link>
@@ -50,5 +54,5 @@ export default function FooterSection() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
