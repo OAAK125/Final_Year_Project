@@ -179,7 +179,7 @@ export default function PersonalizeMiddle() {
           </Popover>
         </div>
 
-        <div className="w-full h-[250px]">
+        <div className="mt-15 w-full h-[250px]">
           <RadarChart data={data} />
         </div>
       </div>
