@@ -182,10 +182,6 @@ export default function PersonalizeMiddle() {
         <div className="w-full h-[250px]">
           <RadarChart data={data} />
         </div>
-
-        <Button variant="outline" className="mt-4 w-fit">
-          Improve your Skill Proficiency
-        </Button>
       </div>
     </div>
   );

@@ -116,7 +116,7 @@ export default function PersonalizeTop() {
 
               {/* Include Missed Dropdown */}
               <div className="space-y-2 text-center">
-                <p>Include Previously Missed Questions?</p>
+                <p>Include Flagged Questions?</p>
                 <Select
                   value={includeMissed}
                   onValueChange={setIncludeMissed}

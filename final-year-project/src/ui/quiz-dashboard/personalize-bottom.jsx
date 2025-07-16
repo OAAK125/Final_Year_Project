@@ -51,7 +51,7 @@ export default function PersonalizeBottom() {
       <div className="border border-border rounded-xl overflow-hidden flex flex-col justify-between">
         <div className="p-6 md:p-8 space-y-4">
             <div className="flex items-center justify-items-normal gap-3">
-          <h3 className="text-xl font-semibold">Frequently Missed Questions</h3>
+          <h3 className="text-xl font-semibold">Flagged Questions</h3>
            <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -64,7 +64,7 @@ export default function PersonalizeBottom() {
           </Popover>
           </div>
           <Table>
-            <TableCaption>A list of questions you often got wrong</TableCaption>
+            <TableCaption>A list of questions you have flagged for review</TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead>Certificate</TableHead>

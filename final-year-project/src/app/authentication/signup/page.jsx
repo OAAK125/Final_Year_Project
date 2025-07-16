@@ -1,7 +1,7 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function AuthenticationSignupPage() {
   return (
@@ -9,23 +9,25 @@ export default function AuthenticationSignupPage() {
       <form className="m-auto w-full max-w-sm rounded-lg border bg-card p-6 shadow-sm">
         {/* Logo and Title */}
         <div className="space-y-2 text-center">
-            <Image
-              src="/assets/authentication/logo-symbol.svg"
-              alt="CertifyPrep Logo"
-              width={48}
-              height={48}
-              className="mx-auto"
-            />
+          <Image
+            src="/assets/authentication/logo-symbol.svg"
+            alt="CertifyPrep Logo"
+            width={48}
+            height={48}
+            className="mx-auto"
+          />
           <br />
           <h1 className="text-xl font-semibold">Welcome to Certify Prep</h1>
-          <p className="text-sm text-muted-foreground">
-            Join us to continue.
-          </p>
+          <p className="text-sm text-muted-foreground">Join us to continue.</p>
         </div>
 
         {/* OAuth Buttons */}
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <Button variant="outline" type="button" className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            type="button"
+            className="flex items-center justify-center gap-2"
+          >
             <Image
               src="/assets/authentication/google.svg"
               alt="Google logo"
@@ -34,7 +36,11 @@ export default function AuthenticationSignupPage() {
             />
           </Button>
 
-          <Button variant="outline" type="button" className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            type="button"
+            className="flex items-center justify-center gap-2"
+          >
             <Image
               src="/assets/authentication/github.svg"
               alt="Github logo"
@@ -77,23 +83,27 @@ export default function AuthenticationSignupPage() {
         {/* Footer */}
         <div className="mt-6 rounded-md border bg-muted p-4 text-center space-y-2">
           <p className="text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link href="/authentication/login" className="font-medium text-primary hover:underline">
+            Already have an account?{" "}
+            <Link
+              href="/authentication/login"
+              className="font-medium text-primary hover:underline"
+            >
               Log In
             </Link>
           </p>
         </div>
         <p className="text-xs text-muted-foreground p-4 text-center">
-            By creating an account, you agree to our{' '}
-            <Link href="/terms" className="underline hover:text-primary">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link href="/privacy" className="underline hover:text-primary">
-              Privacy Policy
-            </Link>.
-          </p>
+          By creating an account, you agree to our{" "}
+          <Link href="/terms" className="underline hover:text-primary">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="underline hover:text-primary">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
     </section>
-  )
+  );
 }
