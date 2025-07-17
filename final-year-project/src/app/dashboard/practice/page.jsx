@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { Clock, FileText, Users, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -16,73 +18,112 @@ const triggerStyle =
   "text-sm px-4 py-2 border border-input rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring data-[state=open]:border-primary data-[state=open]:text-primary";
 
 const PracticePage = () => {
-  const features = [
-    {
-      id: "feature-1",
-      type: "QUIZ",
-      title: "AWS Cloud Architect",
-      description: "Test your knowledge of AWS architecture and services.",
-      image: "/assets/quiz/images.png",
-      time: "90 mins",
-      questions: 60,
-      participants: 1200,
-    },
-    {
-      id: "feature-2",
-      type: "QUIZ",
-      title: "Google Cloud Associate Engineer",
-      description: "Evaluate your understanding of Google Cloud fundamentals.",
-      image: "/assets/quiz/images.png",
-      time: "75 mins",
-      questions: 50,
-      participants: 950,
-    },
-    {
-      id: "feature-3",
-      type: "QUIZ",
-      title: "Microsoft Azure Fundamentals",
-      description: "Assess your grasp of core Azure concepts and services.",
-      image: "/assets/quiz/images.png",
-      time: "60 mins",
-      questions: 40,
-      participants: 760,
-    },
-    {
-      id: "feature-4",
-      type: "QUIZ",
-      title: "CompTIA Security+",
-      description:
-        "Challenge your knowledge in foundational security concepts.",
-      image: "/assets/quiz/images.png",
-      time: "90 mins",
-      questions: 70,
-      participants: 820,
-    },
-    {
-      id: "feature-5",
-      type: "QUIZ",
-      title: "Cisco CCNA",
-      description: "Test your understanding of networking fundamentals.",
-      image: "/assets/quiz/images.png",
-      time: "80 mins",
-      questions: 65,
-      participants: 690,
-    },
-    {
-      id: "feature-6",
-      type: "QUIZ",
-      title: "DevOps Essentials",
-      description: "Practice CI/CD, containerization and DevOps pipelines.",
-      image: "/assets/quiz/images.png",
-      time: "70 mins",
-      questions: 55,
-      participants: 980,
-    },
-  ];
+  const [certifications, setCertifications] = useState([]);
+  const [certificationTypes, setCertificationTypes] = useState([]);
+  const [topics, setTopics] = useState([]);
+
+  const [filters, setFilters] = useState({
+    certificationType: "",
+    topic: "",
+    arrangement: "",
+  });
+
+  // ⬇ State to reset dropdown placeholder text
+  const [selectedCertificationType, setSelectedCertificationType] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("");
+  const [selectedArrangement, setSelectedArrangement] = useState("");
+
+  // ✅ Fetch filter options
+  useEffect(() => {
+    const fetchFilters = async () => {
+      const [
+        { data: certTypes, error: certTypeError },
+        { data: topicsData, error: topicsError }
+      ] = await Promise.all([
+        supabase.from("certification_type").select("id, name"),
+        supabase.from("topics").select("id, name")
+      ]);
+
+      if (certTypeError) {
+        console.error("Error fetching certification types:", certTypeError.message);
+      } else if (certTypes) {
+        setCertificationTypes(certTypes);
+      }
+
+      if (topicsError) {
+        console.error("Error fetching topics:", topicsError.message);
+      } else if (topicsData) {
+        setTopics(topicsData);
+      }
+    };
+
+    fetchFilters();
+  }, []);
+
+  // ✅ Fetch Certifications + Quizzes
+  useEffect(() => {
+    const fetchCertificationsAndQuizzes = async () => {
+      let query = supabase
+        .from("certifications")
+        .select(`
+          id,
+          name,
+          duration_minutes,
+          max_questions,
+          certification_type_id,
+          topic_id,
+          quizzes(short_description, participants, image, created_at)
+        `);
+
+      if (filters.certificationType) {
+        query = query.eq("certification_type_id", filters.certificationType);
+      }
+      if (filters.topic) {
+        query = query.eq("topic_id", filters.topic);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error("Supabase Error:", error);
+        return;
+      }
+
+      const transformed = data.map((cert) => {
+        const firstQuiz = cert.quizzes?.[0];
+
+        return {
+          id: cert.id,
+          type: "QUIZ",
+          title: cert.name,
+          description: firstQuiz?.short_description || "No description provided.",
+          image: firstQuiz?.image || "/assets/quiz/images.png",
+          time: `${cert.duration_minutes} mins`,
+          questions: cert.max_questions,
+          participants: firstQuiz?.participants ?? Math.floor(Math.random() * 9000) + 1000,
+          created_at: firstQuiz?.created_at || "1970-01-01T00:00:00Z",
+        };
+      });
+
+      switch (filters.arrangement) {
+        case "popular":
+          transformed.sort((a, b) => b.participants - a.participants);
+          break;
+        case "newest":
+          transformed.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          break;
+        case "alphabetical":
+          transformed.sort((a, b) => a.title.localeCompare(b.title));
+          break;
+      }
+
+      setCertifications(transformed);
+    };
+
+    fetchCertificationsAndQuizzes();
+  }, [filters]);
 
   return (
     <section className="p-5 space-y-6 space-x-10">
-      {/* Heading */}
       <div>
         <h1 className="text-3xl font-bold">Practice Test</h1>
         <p className="text-muted-foreground mt-2">
@@ -90,35 +131,57 @@ const PracticePage = () => {
         </p>
       </div>
 
-      {/* Filters and Clear Link */}
+      {/* Filters */}
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-        <Select>
+        {/* Certification Type */}
+        <Select
+          value={selectedCertificationType}
+          onValueChange={(value) => {
+            setFilters({ ...filters, certificationType: value });
+            setSelectedCertificationType(value);
+          }}
+        >
           <SelectTrigger className={triggerStyle}>
             <SelectValue placeholder="Certification Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="microsoft">Microsoft</SelectItem>
-            <SelectItem value="cisco">CISCO</SelectItem>
-            <SelectItem value="google">Google</SelectItem>
-            <SelectItem value="aws">AWS</SelectItem>
-            <SelectItem value="comptia">CompTIA</SelectItem>
+            {certificationTypes.map((ct) => (
+              <SelectItem key={ct.id} value={ct.id.toString()}>
+                {ct.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
-        <Select>
+        {/* Topics */}
+        <Select
+          value={selectedTopic}
+          onValueChange={(value) => {
+            setFilters({ ...filters, topic: value });
+            setSelectedTopic(value);
+          }}
+        >
           <SelectTrigger className={triggerStyle}>
             <SelectValue placeholder="Topic" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="cloud">Cloud</SelectItem>
-            <SelectItem value="security">Security</SelectItem>
-            <SelectItem value="networking">Networking</SelectItem>
-            <SelectItem value="devops">DevOps</SelectItem>
+            {topics.map((tp) => (
+              <SelectItem key={tp.id} value={tp.id.toString()}>
+                {tp.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
+        {/* Arrangement + Clear */}
         <div className="flex justify-between items-center gap-4">
-          <Select>
+          <Select
+            value={selectedArrangement}
+            onValueChange={(value) => {
+              setFilters({ ...filters, arrangement: value });
+              setSelectedArrangement(value);
+            }}
+          >
             <SelectTrigger className={triggerStyle}>
               <SelectValue placeholder="Arrangement" />
             </SelectTrigger>
@@ -129,7 +192,19 @@ const PracticePage = () => {
             </SelectContent>
           </Select>
 
-          <button className="text-sm text-primary hover:underline whitespace-nowrap">
+          <button
+            className="text-sm text-primary hover:underline whitespace-nowrap"
+            onClick={() => {
+              setFilters({
+                certificationType: "",
+                topic: "",
+                arrangement: "",
+              });
+              setSelectedCertificationType("");
+              setSelectedTopic("");
+              setSelectedArrangement("");
+            }}
+          >
             Clear filters
           </button>
         </div>
@@ -137,9 +212,9 @@ const PracticePage = () => {
 
       <Separator />
 
-      {/* Test Cards */}
+      {/* Cards */}
       <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
-        {features.map((feature) => (
+        {certifications.map((feature) => (
           <div
             key={feature.id}
             className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted hover:cursor-pointer"
@@ -148,7 +223,7 @@ const PracticePage = () => {
               <img
                 src={feature.image}
                 alt={feature.title}
-                className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
               />
               <Button
                 variant="ghost"
