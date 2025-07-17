@@ -1,9 +1,9 @@
 "use client";
 
 import { Separator } from "@/components/ui/separator";
-import PersonalizeMiddle from "@/ui/quiz-dashboard/personalize-bottom";
-import  PersonalizeTop  from "@/ui/quiz-dashboard/personalize-middle";
-import PersonalizeBottom from "@/ui/quiz-dashboard/personalize-top";
+import PersonalizeMiddle from "@/ui/quiz-dashboard/personalize-middle";
+import PersonalizeTop  from "@/ui/quiz-dashboard/personalize-top";
+import PersonalizeBottom from "@/ui/quiz-dashboard/personalize-bottom";
 
 
 const PersonalizedPage = () => {
@@ -22,6 +22,7 @@ const PersonalizedPage = () => {
     <PersonalizeTop />
     <PersonalizeMiddle />
     <PersonalizeBottom />
+    
     </>
   );
 };
