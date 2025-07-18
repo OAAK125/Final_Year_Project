@@ -29,7 +29,8 @@ const PracticePage = () => {
   });
 
   // ⬇ State to reset dropdown placeholder text
-  const [selectedCertificationType, setSelectedCertificationType] = useState("");
+  const [selectedCertificationType, setSelectedCertificationType] =
+    useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedArrangement, setSelectedArrangement] = useState("");
 
@@ -38,14 +39,17 @@ const PracticePage = () => {
     const fetchFilters = async () => {
       const [
         { data: certTypes, error: certTypeError },
-        { data: topicsData, error: topicsError }
+        { data: topicsData, error: topicsError },
       ] = await Promise.all([
         supabase.from("certification_type").select("id, name"),
-        supabase.from("topics").select("id, name")
+        supabase.from("topics").select("id, name"),
       ]);
 
       if (certTypeError) {
-        console.error("Error fetching certification types:", certTypeError.message);
+        console.error(
+          "Error fetching certification types:",
+          certTypeError.message
+        );
       } else if (certTypes) {
         setCertificationTypes(certTypes);
       }
@@ -63,9 +67,7 @@ const PracticePage = () => {
   // ✅ Fetch Certifications + Quizzes
   useEffect(() => {
     const fetchCertificationsAndQuizzes = async () => {
-      let query = supabase
-        .from("certifications")
-        .select(`
+      let query = supabase.from("certifications").select(`
           id,
           name,
           duration_minutes,
@@ -95,11 +97,13 @@ const PracticePage = () => {
           id: cert.id,
           type: "QUIZ",
           title: cert.name,
-          description: firstQuiz?.short_description || "No description provided.",
+          description:
+            firstQuiz?.short_description || "No description provided.",
           image: firstQuiz?.image || "/assets/quiz/images.png",
           time: `${cert.duration_minutes} mins`,
           questions: cert.max_questions,
-          participants: firstQuiz?.participants ?? Math.floor(Math.random() * 9000) + 1000,
+          participants:
+            firstQuiz?.participants ?? Math.floor(Math.random() * 9000) + 1000,
           created_at: firstQuiz?.created_at || "1970-01-01T00:00:00Z",
         };
       });
@@ -109,7 +113,9 @@ const PracticePage = () => {
           transformed.sort((a, b) => b.participants - a.participants);
           break;
         case "newest":
-          transformed.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          transformed.sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+          );
           break;
         case "alphabetical":
           transformed.sort((a, b) => a.title.localeCompare(b.title));
@@ -215,9 +221,10 @@ const PracticePage = () => {
       {/* Cards */}
       <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
         {certifications.map((feature) => (
-          <div
+          <Link
             key={feature.id}
-            className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted hover:cursor-pointer"
+            href={`/quiz/${feature.id}`}
+            className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
           >
             <div className="relative w-full aspect-video overflow-hidden">
               <img
@@ -225,13 +232,23 @@ const PracticePage = () => {
                 alt={feature.title}
                 className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
               />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
+
+              {/* Bookmark button — works safely inside Link if not submitting anything */}
+              <div
+                onClick={(e) => {
+                  e.preventDefault(); // prevent redirect if button is clicked
+                  e.stopPropagation();
+                  // Add bookmark logic here
+                }}
               >
-                <Bookmark className="h-4 w-4 text-muted-foreground" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
+                >
+                  <Bookmark className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </div>
             </div>
 
             <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
@@ -260,7 +277,7 @@ const PracticePage = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
