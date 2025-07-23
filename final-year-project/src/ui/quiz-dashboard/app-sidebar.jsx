@@ -62,13 +62,21 @@ const quizMenu = [
     icon: BiBookmark,
     solidIcon: BiSolidBookmark,
   },
+
 ]
 
 const forumMenu = [
   {
-    name: "Showcase",
-    href: "/dashboard/showcase",
+    name: "Interactions",
+    href: "/dashboard/interactions",
     icon: BiBookmark,
+  },
+
+  {
+    name: "ForumThreads",
+    href: "/dashboard/forumthreads",
+    icon: BiSlider,
+    solidIcon: BiSlider,
   },
 ]
 
