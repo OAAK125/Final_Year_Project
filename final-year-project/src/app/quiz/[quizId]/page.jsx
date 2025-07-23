@@ -16,7 +16,7 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Clock, FileText, X } from "lucide-react";
+import { AlertCircle, Clock, FileText, X, Loader2 } from "lucide-react";
 
 export default function QuizInfoPage() {
   const { quizId } = useParams();
@@ -66,9 +66,10 @@ export default function QuizInfoPage() {
 
   if (!quiz) {
     return (
-      <section className="min-h-screen flex items-center justify-center bg-white">
-        Loading...
-      </section>
+      <div className="min-h-screen flex flex-col items-center justify-center text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+        <p className="text-sm text-gray-600">Loading...</p>
+      </div>
     );
   }
 
@@ -130,7 +131,9 @@ export default function QuizInfoPage() {
 
         {/* Heading */}
         <h1 className="text-2xl font-semibold">{certification.name}</h1>
-        <p className="text-muted-foreground text-lg">Code: {certification.code}</p>
+        <p className="text-muted-foreground text-lg">
+          Code: {certification.code}
+        </p>
 
         {/* Description */}
         <p className="text-muted-foreground text-base whitespace-pre-line">
@@ -143,13 +146,18 @@ export default function QuizInfoPage() {
             <Clock className="w-4 h-4" /> {certification.duration_minutes} mins
           </div>
           <div className="flex items-center gap-1">
-            <FileText className="w-4 h-4" /> {certification.max_questions} questions
+            <FileText className="w-4 h-4" /> {certification.max_questions}{" "}
+            questions
           </div>
         </div>
 
-        {/* Get Started Button */}
-        <Button size="lg" className="w-1/2 text-base font-semibold mt-2">
-          Get started
+        {/* Start Quiz Button */}
+        <Button
+          size="lg"
+          className="w-1/2 text-base font-semibold mt-2"
+          onClick={() => router.push(`/quiz/${quizId}/start`)}
+        >
+          Start Quiz
         </Button>
       </div>
     </section>

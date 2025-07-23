@@ -6,7 +6,7 @@ import Features from "@/ui/landing-page/features";
 import FooterSection from "@/ui/landing-page/footer";
 import HeroSection from "@/ui/landing-page/hero-section";
 import TestimonialsSection from "@/ui/landing-page/testimonals";
-import { Contact } from "lucide-react";
+
 
 
 
@@ -21,8 +21,6 @@ export default function Home() {
     <ContactUs />
     <CallToAction />
     <FooterSection />
-
-    
     </main>
   );
 }
