@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
+  let supabaseResponse = NextResponse.next({ 
     request,
   })
 
@@ -39,12 +39,15 @@ export async function updateSession(request: NextRequest) {
 
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !request.nextUrl.pathname.includes('/authentication/login') &&
+    !request.nextUrl.pathname.includes('/authentication/signup') &&
+    !request.nextUrl.pathname.includes('/authentication/forgot-passowrd') &&
+    !request.nextUrl.pathname.includes('/authentication/reset-password') &&
+    !request.nextUrl.pathname.includes('/auth')
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = '/authentication/login'
     return NextResponse.redirect(url)
   }
 

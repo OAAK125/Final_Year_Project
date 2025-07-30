@@ -1,23 +1,34 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter, useParams } from "next/navigation"
-import { supabase } from "@/lib/supabase"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { X, Flag, Timer, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogTrigger,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { X, Flag, Timer, Loader2 } from "lucide-react";
 
 export default function QuizQuestionPage() {
-  const router = useRouter()
-  const { quizId } = useParams() // quizId is certification_id
+  const router = useRouter();
+  const { quizId } = useParams();
 
-  const [questions, setQuestions] = useState([])
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [selected, setSelected] = useState(null)
-  const [progress, setProgress] = useState(0)
-  const [duration, setDuration] = useState(0) // in seconds
-  const [timeLeft, setTimeLeft] = useState(0)
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -25,102 +36,87 @@ export default function QuizQuestionPage() {
         .from("certifications")
         .select("duration_minutes, max_questions")
         .eq("id", quizId)
-        .single()
+        .single();
 
-      if (certError || !cert) {
-        console.error("Certification not found.")
-        return
-      }
+      if (certError || !cert) return;
 
-      setDuration(cert.duration_minutes * 60)
-      setTimeLeft(cert.duration_minutes * 60)
+      setDuration(cert.duration_minutes * 60);
+      setTimeLeft(cert.duration_minutes * 60);
 
-      const { data: allQuestions, error: qError } = await supabase
+      const { data: allQuestions } = await supabase
         .from("questions")
         .select("*")
-        .eq("certification_id", quizId)
+        .eq("certification_id", quizId);
 
-      if (qError || !allQuestions || allQuestions.length === 0) {
-        console.error("No questions found.")
-        return
-      }
+      if (!allQuestions || allQuestions.length === 0) return;
 
-      let selectedQuestions = [...allQuestions]
-
+      let selectedQuestions = [...allQuestions];
       while (selectedQuestions.length < cert.max_questions) {
-        const randomIndex = Math.floor(Math.random() * allQuestions.length)
-        selectedQuestions.push(allQuestions[randomIndex])
+        const randomIndex = Math.floor(Math.random() * allQuestions.length);
+        selectedQuestions.push(allQuestions[randomIndex]);
       }
+      selectedQuestions = selectedQuestions.slice(0, cert.max_questions);
 
-      selectedQuestions = selectedQuestions.slice(0, cert.max_questions)
+      setQuestions(selectedQuestions);
+      setProgress(100 / selectedQuestions.length);
+    };
 
-      setQuestions(selectedQuestions)
-      setProgress(100 / selectedQuestions.length)
-    }
+    fetchQuiz();
+  }, [quizId]);
 
-    fetchQuiz()
-  }, [quizId])
-
-  // Countdown timer
   useEffect(() => {
-    if (timeLeft <= 0) return
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1)
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [timeLeft])
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
 
   if (questions.length === 0) {
-      return (
-        <div className="min-h-screen flex flex-col items-center justify-center text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-          <p className="text-sm text-gray-600">Loading...</p>
-        </div>
-      );
-    }
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+        <p className="text-sm text-gray-600">Loading...</p>
+      </div>
+    );
+  }
 
-  const question = questions[currentQuestionIndex]
-  const totalQuestions = questions.length
+  const question = questions[currentQuestionIndex];
+  const totalQuestions = questions.length;
+  const correctLetter = question.correct_answer[0];
+  const correctIndex = question.options.findIndex((opt) =>
+    opt.startsWith(correctLetter + ".")
+  );
+
+  const handleSubmit = () => {
+    if (selected !== null) setSubmitted(true);
+  };
 
   const handleNext = () => {
     if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1)
-      setSelected(null)
-      setProgress(((currentQuestionIndex + 2) / totalQuestions) * 100)
+      setCurrentQuestionIndex((prev) => prev + 1);
+      setSelected(null);
+      setSubmitted(false);
+      setProgress(((currentQuestionIndex + 2) / totalQuestions) * 100);
     }
-  }
-
-  const handlePrev = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev - 1)
-      setSelected(null)
-      setProgress(((currentQuestionIndex) / totalQuestions) * 100)
-    }
-  }
+  };
 
   const formatTime = (seconds) => {
-    const m = String(Math.floor(seconds / 60)).padStart(2, "0")
-    const s = String(seconds % 60).padStart(2, "0")
-    return `${m}:${s}`
-  }
+    const m = String(Math.floor(seconds / 60)).padStart(2, "0");
+    const s = String(seconds % 60).padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   return (
     <div className="max-w-3xl mx-auto min-h-screen p-6 flex flex-col justify-between">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
-        <Button
-          className="p-1 text-black"
-          variant="ghost"
-          size=""
-          onClick={() => router.push(`/quiz/${quizId}`)}
-        >
+        <Button variant="ghost" onClick={() => router.push(`/quiz/${quizId}`)}>
           <X className="w-10 h-10" />
         </Button>
         <Progress value={progress} className="flex-1 mx-4 h-2 bg-gray-200" />
         <div className="flex items-center gap-2 text-sm font-medium text-black">
-          <span>{currentQuestionIndex + 1}/{totalQuestions}</span>
+          <span>
+            {currentQuestionIndex + 1}/{totalQuestions}
+          </span>
           <Button variant="ghost" className="p-1 mx-1">
             <Flag className="w-4 h-4 text-black" />
           </Button>
@@ -134,20 +130,33 @@ export default function QuizQuestionPage() {
 
       {/* Options */}
       <div className="space-y-4 mb-6">
-        {question.options.map((option, index) => (
-          <Card
-            key={index}
-            onClick={() => setSelected(index)}
-            className={`cursor-pointer px-4 py-3 border rounded-xl text-left text-base hover:bg-gray-100 ${
-              selected === index ? "border-primary text-primary shadow" : ""
-            }`}
-          >
-            {option}
-          </Card>
-        ))}
+        {question.options.map((option, index) => {
+          const isCorrect = index === correctIndex;
+          const isWrong =
+            submitted && selected === index && index !== correctIndex;
+
+          return (
+            <Card
+              key={index}
+              onClick={() => !submitted && setSelected(index)}
+              className={`cursor-pointer px-4 py-3 border rounded-xl text-left text-base
+                ${
+                  selected === index && !submitted
+                    ? "border-primary text-primary shadow"
+                    : ""
+                }
+                ${submitted && isCorrect ? "bg-green-600 text-white" : ""}
+                ${isWrong ? "bg-red-600 text-white" : ""}
+                ${submitted ? "cursor-default" : "hover:bg-gray-100"}
+              `}
+            >
+              {option}
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Bottom Bar */}
+      {/* Bottom */}
       <div className="flex justify-between items-center border-t pt-4">
         {/* Timer */}
         <div className="flex items-center text-gray-700 text-sm">
@@ -155,26 +164,48 @@ export default function QuizQuestionPage() {
           <span>{formatTime(timeLeft)}</span>
         </div>
 
-        {/* Navigation Buttons */}
+        {/* Navigation */}
         <div className="flex gap-2">
-          {currentQuestionIndex > 0 && (
+          {submitted ? (
+            <>
+              <Button
+                variant="default"
+                className="rounded-xl"
+                onClick={handleNext}
+              >
+                Next question
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" className="rounded-xl">
+                    Explanation
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Explanation</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {question.explanation}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Close</AlertDialogCancel>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          ) : (
             <Button
-              variant="outline"
               className="rounded-xl"
-              onClick={handlePrev}
+              variant="default"
+              disabled={selected === null}
+              onClick={handleSubmit}
             >
-              Previous question
+              Submit Question
             </Button>
           )}
-          <Button
-            className="rounded-xl"
-            variant={selected !== null ? "default" : "outline"}
-            onClick={handleNext}
-          >
-            {selected !== null ? "Next question" : "I don’t know"}
-          </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
