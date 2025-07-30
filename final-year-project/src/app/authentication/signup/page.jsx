@@ -114,10 +114,6 @@ export default function AuthenticationSignupPage() {
       setError(error.message);
       return;
     }
-
-    // Supabase will redirect to /dashboard after OAuth
-    // To populate the profile, ensure you have a trigger like handle_new_user
-    // or do it in /dashboard server component if needed
   };
 
   return (
