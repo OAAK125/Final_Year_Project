@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { Clock, FileText, Users, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -18,6 +18,8 @@ const triggerStyle =
   "text-sm px-4 py-2 border border-input rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring data-[state=open]:border-primary data-[state=open]:text-primary";
 
 const PracticePage = () => {
+  const supabase = createClient();
+
   const [certifications, setCertifications] = useState([]);
   const [certificationTypes, setCertificationTypes] = useState([]);
   const [topics, setTopics] = useState([]);
@@ -28,9 +30,7 @@ const PracticePage = () => {
     arrangement: "",
   });
 
-  // ⬇ State to reset dropdown placeholder text
-  const [selectedCertificationType, setSelectedCertificationType] =
-    useState("");
+  const [selectedCertificationType, setSelectedCertificationType] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedArrangement, setSelectedArrangement] = useState("");
 
@@ -46,17 +46,14 @@ const PracticePage = () => {
       ]);
 
       if (certTypeError) {
-        console.error(
-          "Error fetching certification types:",
-          certTypeError.message
-        );
-      } else if (certTypes) {
+        console.error("Error fetching certification types:", certTypeError.message);
+      } else {
         setCertificationTypes(certTypes);
       }
 
       if (topicsError) {
         console.error("Error fetching topics:", topicsError.message);
-      } else if (topicsData) {
+      } else {
         setTopics(topicsData);
       }
     };
@@ -68,18 +65,19 @@ const PracticePage = () => {
   useEffect(() => {
     const fetchCertificationsAndQuizzes = async () => {
       let query = supabase.from("certifications").select(`
-          id,
-          name,
-          duration_minutes,
-          max_questions,
-          certification_type_id,
-          topic_id,
-          quizzes(short_description, participants, image, created_at)
-        `);
+        id,
+        name,
+        duration_minutes,
+        max_questions,
+        certification_type_id,
+        topic_id,
+        quizzes(short_description, participants, image, created_at)
+      `);
 
       if (filters.certificationType) {
         query = query.eq("certification_type_id", filters.certificationType);
       }
+
       if (filters.topic) {
         query = query.eq("topic_id", filters.topic);
       }
@@ -97,8 +95,7 @@ const PracticePage = () => {
           id: cert.id,
           type: "QUIZ",
           title: cert.name,
-          description:
-            firstQuiz?.short_description || "No description provided.",
+          description: firstQuiz?.short_description || "No description provided.",
           image: firstQuiz?.image || "/assets/quiz/images.png",
           time: `${cert.duration_minutes} mins`,
           questions: cert.max_questions,
@@ -232,13 +229,10 @@ const PracticePage = () => {
                 alt={feature.title}
                 className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
               />
-
-              {/* Bookmark button — works safely inside Link if not submitting anything */}
               <div
                 onClick={(e) => {
-                  e.preventDefault(); // prevent redirect if button is clicked
+                  e.preventDefault();
                   e.stopPropagation();
-                  // Add bookmark logic here
                 }}
               >
                 <Button

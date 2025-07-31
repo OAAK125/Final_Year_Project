@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-
+import { useRouter, useParams } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -19,8 +17,10 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, Clock, FileText, X, Loader2 } from "lucide-react";
 
 export default function QuizInfoPage() {
-  const { quizId } = useParams();
   const router = useRouter();
+  const { quizId } = useParams();
+  const supabase = createClient();
+
   const [quiz, setQuiz] = useState(null);
   const [error, setError] = useState(null);
 
@@ -54,7 +54,7 @@ export default function QuizInfoPage() {
     }
 
     if (quizId) fetchQuiz();
-  }, [quizId]);
+  }, [quizId, supabase]);
 
   if (error) {
     return (
@@ -75,6 +75,34 @@ export default function QuizInfoPage() {
 
   const certification = quiz.certifications;
   const instructions = quiz.instructions?.split("\n").filter(Boolean) || [];
+
+  const handleStartQuiz = async () => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError("You must be logged in to start the quiz.");
+      return;
+    }
+
+    const { data: sessionData, error: sessionError } = await supabase
+      .from("quiz_sessions")
+      .insert({
+        user_id: user.id,
+        certification_id: quiz.certification_id,
+      })
+      .select("id")
+      .single();
+
+    if (sessionError || !sessionData) {
+      setError("Failed to start quiz session. Please try again.");
+      return;
+    }
+
+    router.push(`/quiz/${quizId}/start?session_id=${sessionData.id}`);
+  };
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-white px-4">
@@ -146,8 +174,7 @@ export default function QuizInfoPage() {
             <Clock className="w-4 h-4" /> {certification.duration_minutes} mins
           </div>
           <div className="flex items-center gap-1">
-            <FileText className="w-4 h-4" /> {certification.max_questions}{" "}
-            questions
+            <FileText className="w-4 h-4" /> {certification.max_questions} questions
           </div>
         </div>
 
@@ -155,7 +182,7 @@ export default function QuizInfoPage() {
         <Button
           size="lg"
           className="w-1/2 text-base font-semibold mt-2"
-          onClick={() => router.push(`/quiz/${quizId}/start`)}
+          onClick={handleStartQuiz}
         >
           Start Quiz
         </Button>
