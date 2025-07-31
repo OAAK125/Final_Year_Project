@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-
+import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -19,10 +17,15 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, Clock, FileText, X, Loader2 } from "lucide-react";
 
 export default function QuizInfoPage() {
-  const { quizId } = useParams();
   const router = useRouter();
+  const { quizId } = useParams();
+  const supabase = createClient();
+
   const [quiz, setQuiz] = useState(null);
   const [error, setError] = useState(null);
+
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
 
   useEffect(() => {
     async function fetchQuiz() {
@@ -54,7 +57,7 @@ export default function QuizInfoPage() {
     }
 
     if (quizId) fetchQuiz();
-  }, [quizId]);
+  }, [quizId, supabase]);
 
   if (error) {
     return (
@@ -75,6 +78,34 @@ export default function QuizInfoPage() {
 
   const certification = quiz.certifications;
   const instructions = quiz.instructions?.split("\n").filter(Boolean) || [];
+
+  const handleStartQuiz = async () => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError("You must be logged in to start the quiz.");
+      return;
+    }
+
+    const { data: sessionData, error: sessionError } = await supabase
+      .from("quiz_sessions")
+      .insert({
+        user_id: user.id,
+        certification_id: quiz.certification_id,
+      })
+      .select("id")
+      .single();
+
+    if (sessionError || !sessionData) {
+      setError("Failed to start quiz session. Please try again.");
+      return;
+    }
+
+    router.push(`/quiz/${quizId}/start?session_id=${sessionData.id}`);
+  };
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-white px-4">
@@ -113,7 +144,15 @@ export default function QuizInfoPage() {
           variant="ghost"
           size="icon"
           className="absolute top-6 left-6 text-black hover:text-primary"
-          onClick={() => router.push("/dashboard/practice")}
+          onClick={() => {
+            if (from === "/dashboard/practice") {
+              router.push("/dashboard/practice");
+            } else if (from === "/dashboard") {
+              router.push("/dashboard");
+            } else {
+              router.push("/dashboard/practice"); // fallback
+            }
+          }}
         >
           <X className="w-5 h-5" />
         </Button>
@@ -155,7 +194,7 @@ export default function QuizInfoPage() {
         <Button
           size="lg"
           className="w-1/2 text-base font-semibold mt-2"
-          onClick={() => router.push(`/quiz/${quizId}/start`)}
+          onClick={handleStartQuiz}
         >
           Start Quiz
         </Button>

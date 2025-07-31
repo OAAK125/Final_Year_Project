@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { Clock, FileText, Users, Bookmark } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
+import {
+  Clock,
+  FileText,
+  Users,
+  Bookmark,
+  Bookmark as BookmarkSolid,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
@@ -18,9 +24,12 @@ const triggerStyle =
   "text-sm px-4 py-2 border border-input rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring data-[state=open]:border-primary data-[state=open]:text-primary";
 
 const PracticePage = () => {
+  const supabase = createClient();
+
   const [certifications, setCertifications] = useState([]);
   const [certificationTypes, setCertificationTypes] = useState([]);
   const [topics, setTopics] = useState([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
 
   const [filters, setFilters] = useState({
     certificationType: "",
@@ -28,58 +37,91 @@ const PracticePage = () => {
     arrangement: "",
   });
 
-  // ⬇ State to reset dropdown placeholder text
   const [selectedCertificationType, setSelectedCertificationType] =
     useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedArrangement, setSelectedArrangement] = useState("");
 
+  const fetchBookmarks = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .select("certification_id")
+      .eq("user_id", user.id);
+
+    if (!error && data) {
+      const ids = new Set(data.map((b) => b.certification_id));
+      setBookmarkedIds(ids);
+    }
+  };
+
+  const toggleBookmark = async (certId) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const alreadyBookmarked = bookmarkedIds.has(certId);
+
+    if (alreadyBookmarked) {
+      await supabase
+        .from("bookmarks")
+        .delete()
+        .match({ user_id: user.id, certification_id: certId });
+      setBookmarkedIds((prev) => {
+        const copy = new Set(prev);
+        copy.delete(certId);
+        return copy;
+      });
+    } else {
+      await supabase.from("bookmarks").insert({
+        user_id: user.id,
+        certification_id: certId,
+      });
+      setBookmarkedIds((prev) => new Set(prev).add(certId));
+    }
+  };
+
   // ✅ Fetch filter options
   useEffect(() => {
     const fetchFilters = async () => {
       const [
-        { data: certTypes, error: certTypeError },
-        { data: topicsData, error: topicsError },
+        { data: certTypes },
+        { data: topicsData },
       ] = await Promise.all([
         supabase.from("certification_type").select("id, name"),
         supabase.from("topics").select("id, name"),
       ]);
 
-      if (certTypeError) {
-        console.error(
-          "Error fetching certification types:",
-          certTypeError.message
-        );
-      } else if (certTypes) {
-        setCertificationTypes(certTypes);
-      }
-
-      if (topicsError) {
-        console.error("Error fetching topics:", topicsError.message);
-      } else if (topicsData) {
-        setTopics(topicsData);
-      }
+      setCertificationTypes(certTypes || []);
+      setTopics(topicsData || []);
     };
 
     fetchFilters();
+    fetchBookmarks();
   }, []);
 
   // ✅ Fetch Certifications + Quizzes
   useEffect(() => {
     const fetchCertificationsAndQuizzes = async () => {
       let query = supabase.from("certifications").select(`
-          id,
-          name,
-          duration_minutes,
-          max_questions,
-          certification_type_id,
-          topic_id,
-          quizzes(short_description, participants, image, created_at)
-        `);
+        id,
+        name,
+        duration_minutes,
+        max_questions,
+        certification_type_id,
+        topic_id,
+        quizzes(short_description, participants, image, created_at)
+      `);
 
       if (filters.certificationType) {
         query = query.eq("certification_type_id", filters.certificationType);
       }
+
       if (filters.topic) {
         query = query.eq("topic_id", filters.topic);
       }
@@ -90,15 +132,14 @@ const PracticePage = () => {
         return;
       }
 
-      const transformed = data.map((cert) => {
+      const transformed = (data || []).map((cert) => {
         const firstQuiz = cert.quizzes?.[0];
 
         return {
           id: cert.id,
           type: "QUIZ",
           title: cert.name,
-          description:
-            firstQuiz?.short_description || "No description provided.",
+          description: firstQuiz?.short_description || "No description provided.",
           image: firstQuiz?.image || "/assets/quiz/images.png",
           time: `${cert.duration_minutes} mins`,
           questions: cert.max_questions,
@@ -139,7 +180,6 @@ const PracticePage = () => {
 
       {/* Filters */}
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-        {/* Certification Type */}
         <Select
           value={selectedCertificationType}
           onValueChange={(value) => {
@@ -159,7 +199,6 @@ const PracticePage = () => {
           </SelectContent>
         </Select>
 
-        {/* Topics */}
         <Select
           value={selectedTopic}
           onValueChange={(value) => {
@@ -179,7 +218,6 @@ const PracticePage = () => {
           </SelectContent>
         </Select>
 
-        {/* Arrangement + Clear */}
         <div className="flex justify-between items-center gap-4">
           <Select
             value={selectedArrangement}
@@ -232,13 +270,11 @@ const PracticePage = () => {
                 alt={feature.title}
                 className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
               />
-
-              {/* Bookmark button — works safely inside Link if not submitting anything */}
               <div
                 onClick={(e) => {
-                  e.preventDefault(); // prevent redirect if button is clicked
+                  e.preventDefault();
                   e.stopPropagation();
-                  // Add bookmark logic here
+                  toggleBookmark(feature.id);
                 }}
               >
                 <Button
@@ -246,7 +282,11 @@ const PracticePage = () => {
                   size="icon"
                   className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
                 >
-                  <Bookmark className="h-4 w-4 text-muted-foreground" />
+                  {bookmarkedIds.has(feature.id) ? (
+                    <BookmarkSolid className="h-4 w-4 text-primary fill-primary" />
+                  ) : (
+                    <Bookmark className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </Button>
               </div>
             </div>
