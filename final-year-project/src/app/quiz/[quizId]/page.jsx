@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import {
   AlertDialog,
@@ -23,6 +23,9 @@ export default function QuizInfoPage() {
 
   const [quiz, setQuiz] = useState(null);
   const [error, setError] = useState(null);
+
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
 
   useEffect(() => {
     async function fetchQuiz() {
@@ -141,7 +144,15 @@ export default function QuizInfoPage() {
           variant="ghost"
           size="icon"
           className="absolute top-6 left-6 text-black hover:text-primary"
-          onClick={() => router.push("/dashboard/practice")}
+          onClick={() => {
+            if (from === "/dashboard/practice") {
+              router.push("/dashboard/practice");
+            } else if (from === "/dashboard") {
+              router.push("/dashboard");
+            } else {
+              router.push("/dashboard/practice"); // fallback
+            }
+          }}
         >
           <X className="w-5 h-5" />
         </Button>
@@ -174,7 +185,8 @@ export default function QuizInfoPage() {
             <Clock className="w-4 h-4" /> {certification.duration_minutes} mins
           </div>
           <div className="flex items-center gap-1">
-            <FileText className="w-4 h-4" /> {certification.max_questions} questions
+            <FileText className="w-4 h-4" /> {certification.max_questions}{" "}
+            questions
           </div>
         </div>
 

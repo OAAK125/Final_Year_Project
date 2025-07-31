@@ -6,7 +6,19 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { X, Flag, Timer, Loader2 } from "lucide-react";
+import { X, Timer, Flag, Loader2 } from "lucide-react";
+
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 export default function QuizQuestionPage() {
   const router = useRouter();
@@ -19,27 +31,25 @@ export default function QuizQuestionPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selected, setSelected] = useState(null);
   const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const [isFlagged, setIsFlagged] = useState(false);
 
+  const question = questions[currentQuestionIndex];
+  const totalQuestions = questions.length;
+  const correctLetter = question?.correct_answer?.[0];
+
+  // 1. Initialization
   useEffect(() => {
     const initialize = async () => {
       const { data, error } = await supabase.auth.getUser();
-      if (error || !data?.user) {
-        router.push("/authentication/login");
-        return;
-      }
+      if (error || !data?.user) return router.push("/authentication/login");
 
       setUser(data.user);
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const sessionParam = urlParams.get("session_id");
-      if (!sessionParam) {
-        router.push("/dashboard");
-        return;
-      }
+      const sessionParam = new URLSearchParams(window.location.search).get("session_id");
+      if (!sessionParam) return router.push("/dashboard");
 
       setSessionId(sessionParam);
     };
@@ -47,6 +57,7 @@ export default function QuizQuestionPage() {
     initialize();
   }, [router, supabase]);
 
+  // 2. Fetch Quiz & Questions
   useEffect(() => {
     const fetchQuiz = async () => {
       const { data: cert } = await supabase
@@ -57,7 +68,6 @@ export default function QuizQuestionPage() {
 
       if (!cert) return;
 
-      setDuration(cert.duration_minutes * 60);
       setTimeLeft(cert.duration_minutes * 60);
 
       const { data: allQuestions } = await supabase
@@ -65,10 +75,17 @@ export default function QuizQuestionPage() {
         .select("*")
         .eq("certification_id", quizId);
 
-      if (!allQuestions || allQuestions.length === 0) return;
+      if (!allQuestions?.length) return;
 
-      const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
-      const selectedQuestions = shuffled.slice(0, cert.max_questions);
+      let selectedQuestions = [...allQuestions].sort(() => 0.5 - Math.random());
+      while (selectedQuestions.length < cert.max_questions) {
+        const additional = [...allQuestions]
+          .sort(() => 0.5 - Math.random())
+          .slice(0, cert.max_questions - selectedQuestions.length);
+        selectedQuestions = [...selectedQuestions, ...additional];
+      }
+
+      selectedQuestions = selectedQuestions.slice(0, cert.max_questions);
 
       setQuestions(selectedQuestions);
       setProgress(100 / selectedQuestions.length);
@@ -78,6 +95,7 @@ export default function QuizQuestionPage() {
     if (quizId && sessionId) fetchQuiz();
   }, [quizId, sessionId, supabase]);
 
+  // 3. Countdown Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
@@ -85,38 +103,56 @@ export default function QuizQuestionPage() {
     return () => clearInterval(timer);
   }, []);
 
+  // 4. Fetch Flag Status
   useEffect(() => {
-    const fetchFlagStatus = async () => {
-      if (!user || !sessionId || !questions[currentQuestionIndex]) return;
-
+    const checkFlagged = async () => {
+      if (!user || !question) return;
       const { data, error } = await supabase
-        .from("answers")
-        .select("flagged")
+        .from("flagged_questions")
+        .select("id")
         .eq("user_id", user.id)
-        .eq("quiz_session_id", sessionId)
-        .eq("question_id", questions[currentQuestionIndex].id)
+        .eq("question_id", question.id)
         .single();
 
-      setIsFlagged(data?.flagged || false);
+      setIsFlagged(!!data);
     };
 
-    fetchFlagStatus();
-  }, [user, sessionId, currentQuestionIndex, questions]);
+    checkFlagged();
+  }, [user, question, supabase]);
 
-  const question = questions[currentQuestionIndex];
-  const totalQuestions = questions.length;
-  const correctLetter = question?.correct_answer?.[0];
+  // 5. Toggle Flag Handler
+  const toggleFlag = async () => {
+    if (!user || !question || !sessionId) return;
+
+    if (isFlagged) {
+      // Remove
+      await supabase
+        .from("flagged_questions")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("question_id", question.id);
+      setIsFlagged(false);
+    } else {
+      // Add
+      await supabase.from("flagged_questions").insert({
+        user_id: user.id,
+        question_id: question.id,
+        quiz_session_id: sessionId,
+      });
+      setIsFlagged(true);
+    }
+  };
 
   const handleNext = async () => {
-    if (user && question && selected !== null) {
-      const selectedLetter = question.options[selected][0];
+    if (user && question) {
+      const selectedLetter = selected !== null ? question.options[selected][0] : null;
       const isCorrect = selectedLetter === correctLetter;
 
-      await supabase.from("answers").insert({
+      await supabase.from("answers").upsert({
         user_id: user.id,
         question_id: question.id,
         selected_answer: selectedLetter,
-        is_correct: isCorrect,
+        is_correct: selectedLetter === null ? false : isCorrect,
         quiz_session_id: sessionId,
       });
     }
@@ -126,15 +162,30 @@ export default function QuizQuestionPage() {
       setSelected(null);
       setProgress(((currentQuestionIndex + 2) / totalQuestions) * 100);
     } else {
-      await supabase
-        .from("quiz_sessions")
-        .update({
-          ended_at: new Date().toISOString(),
-          completed: true,
-        })
-        .eq("id", sessionId);
-      router.push("/dashboard");
+      await handleSubmit();
     }
+  };
+
+  const handleSubmit = async () => {
+    if (user && question) {
+      const selectedLetter = selected !== null ? question.options[selected][0] : null;
+      const isCorrect = selectedLetter === correctLetter;
+
+      await supabase.from("answers").upsert({
+        user_id: user.id,
+        question_id: question.id,
+        selected_answer: selectedLetter,
+        is_correct: selectedLetter === null ? false : isCorrect,
+        quiz_session_id: sessionId,
+      });
+    }
+
+    await supabase
+      .from("quiz_sessions")
+      .update({ ended_at: new Date().toISOString(), completed: true })
+      .eq("id", sessionId);
+
+    router.push(`/quiz/${quizId}/results?session_id=${sessionId}`);
   };
 
   const handlePrevious = () => {
@@ -142,34 +193,6 @@ export default function QuizQuestionPage() {
       setCurrentQuestionIndex((prev) => prev - 1);
       setSelected(null);
     }
-  };
-
-  const toggleFlag = async () => {
-    if (!user || !question) return;
-
-    const { data: existing } = await supabase
-      .from("answers")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("quiz_session_id", sessionId)
-      .eq("question_id", question.id)
-      .single();
-
-    if (existing) {
-      await supabase
-        .from("answers")
-        .update({ flagged: !isFlagged })
-        .eq("id", existing.id);
-    } else {
-      await supabase.from("answers").insert({
-        user_id: user.id,
-        question_id: question.id,
-        quiz_session_id: sessionId,
-        flagged: true,
-      });
-    }
-
-    setIsFlagged((prev) => !prev);
   };
 
   const formatTime = (seconds) => {
@@ -189,10 +212,30 @@ export default function QuizQuestionPage() {
 
   return (
     <div className="max-w-3xl mx-auto min-h-screen p-6 flex flex-col justify-between">
+      {/* Top Bar */}
       <div className="flex items-center justify-between mb-6">
-        <Button variant="ghost" onClick={() => router.push(`/quiz/${quizId}`)}>
-          <X className="w-10 h-10" />
-        </Button>
+        <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" onClick={() => setShowExitDialog(true)}>
+              <X className="w-10 h-10" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Exit Quiz?</AlertDialogTitle>
+              <AlertDialogDescription>
+                If you exit, your progress will not be saved. Are you sure?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Resume</AlertDialogCancel>
+              <AlertDialogAction onClick={() => router.push(`/quiz/${quizId}`)}>
+                Exit
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <Progress value={progress} className="flex-1 mx-4 h-2 bg-gray-200" />
         <div className="flex items-center gap-2 text-sm font-medium text-black">
           <span>
@@ -200,31 +243,35 @@ export default function QuizQuestionPage() {
           </span>
           <Button
             variant="ghost"
-            className={`p-1 mx-1 ${isFlagged ? "text-primary" : "text-black"}`}
             onClick={toggleFlag}
+            className={`p-1 mx-1 ${isFlagged ? "text-primary" : "text-black"}`}
           >
-            <Flag className={`w-4 h-4 ${isFlagged ? "fill-primary" : ""}`} />
+            <Flag className={`w-4 h-4 ${isFlagged ? "fill-current" : ""}`} />
           </Button>
         </div>
       </div>
 
+      {/* Question */}
       <div className="text-center mb-6">
         <h2 className="text-xl font-semibold">{question.question_text}</h2>
       </div>
 
+      {/* Options */}
       <div className="space-y-4 mb-6">
         {question.options.map((option, index) => (
           <Card
             key={index}
             onClick={() => setSelected(index)}
-            className={`cursor-pointer px-4 py-3 border rounded-xl text-left text-base
-              ${selected === index ? "border-primary text-primary shadow" : "hover:bg-gray-100"}`}
+            className={`cursor-pointer px-4 py-3 border rounded-xl text-left text-base ${
+              selected === index ? "border-primary text-primary shadow" : "hover:bg-gray-100"
+            }`}
           >
             {option}
           </Card>
         ))}
       </div>
 
+      {/* Bottom Bar */}
       <div className="flex justify-between items-center border-t pt-4">
         <div className="flex items-center text-gray-700 text-sm">
           <Timer className="w-5 h-5 mr-2" />
@@ -237,13 +284,23 @@ export default function QuizQuestionPage() {
               Previous
             </Button>
           )}
-          <Button
-            variant={selected === null ? "outline" : "default"}
-            onClick={handleNext}
-            className="rounded-xl"
-          >
-            {selected === null ? "I don't know" : "Next question"}
-          </Button>
+          {currentQuestionIndex === totalQuestions - 1 ? (
+            <Button
+              variant={selected === null ? "outline" : "default"}
+              onClick={handleSubmit}
+              className="rounded-xl"
+            >
+              {selected === null ? "I don't know" : "Submit"}
+            </Button>
+          ) : (
+            <Button
+              variant={selected === null ? "outline" : "default"}
+              onClick={handleNext}
+              className="rounded-xl"
+            >
+              {selected === null ? "I don't know" : "Next question"}
+            </Button>
+          )}
         </div>
       </div>
     </div>

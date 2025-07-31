@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Clock, FileText, Users, Bookmark } from "lucide-react";
+import {
+  Clock,
+  FileText,
+  Users,
+  Bookmark,
+  Bookmark as BookmarkSolid,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +29,7 @@ const PracticePage = () => {
   const [certifications, setCertifications] = useState([]);
   const [certificationTypes, setCertificationTypes] = useState([]);
   const [topics, setTopics] = useState([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
 
   const [filters, setFilters] = useState({
     certificationType: "",
@@ -30,35 +37,72 @@ const PracticePage = () => {
     arrangement: "",
   });
 
-  const [selectedCertificationType, setSelectedCertificationType] = useState("");
+  const [selectedCertificationType, setSelectedCertificationType] =
+    useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedArrangement, setSelectedArrangement] = useState("");
+
+  const fetchBookmarks = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .select("certification_id")
+      .eq("user_id", user.id);
+
+    if (!error && data) {
+      const ids = new Set(data.map((b) => b.certification_id));
+      setBookmarkedIds(ids);
+    }
+  };
+
+  const toggleBookmark = async (certId) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const alreadyBookmarked = bookmarkedIds.has(certId);
+
+    if (alreadyBookmarked) {
+      await supabase
+        .from("bookmarks")
+        .delete()
+        .match({ user_id: user.id, certification_id: certId });
+      setBookmarkedIds((prev) => {
+        const copy = new Set(prev);
+        copy.delete(certId);
+        return copy;
+      });
+    } else {
+      await supabase.from("bookmarks").insert({
+        user_id: user.id,
+        certification_id: certId,
+      });
+      setBookmarkedIds((prev) => new Set(prev).add(certId));
+    }
+  };
 
   // ✅ Fetch filter options
   useEffect(() => {
     const fetchFilters = async () => {
       const [
-        { data: certTypes, error: certTypeError },
-        { data: topicsData, error: topicsError },
+        { data: certTypes },
+        { data: topicsData },
       ] = await Promise.all([
         supabase.from("certification_type").select("id, name"),
         supabase.from("topics").select("id, name"),
       ]);
 
-      if (certTypeError) {
-        console.error("Error fetching certification types:", certTypeError.message);
-      } else {
-        setCertificationTypes(certTypes);
-      }
-
-      if (topicsError) {
-        console.error("Error fetching topics:", topicsError.message);
-      } else {
-        setTopics(topicsData);
-      }
+      setCertificationTypes(certTypes || []);
+      setTopics(topicsData || []);
     };
 
     fetchFilters();
+    fetchBookmarks();
   }, []);
 
   // ✅ Fetch Certifications + Quizzes
@@ -88,7 +132,7 @@ const PracticePage = () => {
         return;
       }
 
-      const transformed = data.map((cert) => {
+      const transformed = (data || []).map((cert) => {
         const firstQuiz = cert.quizzes?.[0];
 
         return {
@@ -136,7 +180,6 @@ const PracticePage = () => {
 
       {/* Filters */}
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-        {/* Certification Type */}
         <Select
           value={selectedCertificationType}
           onValueChange={(value) => {
@@ -156,7 +199,6 @@ const PracticePage = () => {
           </SelectContent>
         </Select>
 
-        {/* Topics */}
         <Select
           value={selectedTopic}
           onValueChange={(value) => {
@@ -176,7 +218,6 @@ const PracticePage = () => {
           </SelectContent>
         </Select>
 
-        {/* Arrangement + Clear */}
         <div className="flex justify-between items-center gap-4">
           <Select
             value={selectedArrangement}
@@ -233,6 +274,7 @@ const PracticePage = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  toggleBookmark(feature.id);
                 }}
               >
                 <Button
@@ -240,7 +282,11 @@ const PracticePage = () => {
                   size="icon"
                   className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
                 >
-                  <Bookmark className="h-4 w-4 text-muted-foreground" />
+                  {bookmarkedIds.has(feature.id) ? (
+                    <BookmarkSolid className="h-4 w-4 text-primary fill-primary" />
+                  ) : (
+                    <Bookmark className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </Button>
               </div>
             </div>
