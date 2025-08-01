@@ -17,7 +17,10 @@ import { createClient } from "@/utils/supabase/client";
 
 dayjs.extend(relativeTime);
 
-const RadarChart = dynamic(() => import("./radar-chart"), { ssr: false });
+const SubTopicPerformanceChart = dynamic(
+  () => import("@/ui/quiz-dashboard/bar-chart"),
+  { ssr: false }
+);
 
 const HomeTop = ({ heading = "Retake Last Test" }) => {
   const router = useRouter();
@@ -25,6 +28,7 @@ const HomeTop = ({ heading = "Retake Last Test" }) => {
 
   const [feature, setFeature] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasChartData, setHasChartData] = useState(true); // ✅ added state here
 
   useEffect(() => {
     const fetchLatestTest = async () => {
@@ -126,25 +130,27 @@ const HomeTop = ({ heading = "Retake Last Test" }) => {
               </Button>
             </div>
           </div>
-        ) : !loading && (
-          <div className="md:col-span-3 md:row-span-2 flex flex-col items-center justify-center border rounded-xl p-6 text-center text-muted-foreground">
-            <p>No quiz history found. Take a quiz to get started!</p>
-            <Button
-              variant="default"
-              className="mt-4"
-              onClick={() => router.push("/dashboard/practice")}
-            >
-              Go to Practice Tests
-            </Button>
-          </div>
+        ) : (
+          !loading && (
+            <div className="md:col-span-3 md:row-span-2 flex flex-col items-center justify-center border rounded-xl p-6 text-center text-muted-foreground">
+              <p>No quiz history found. Take a quiz to get started!</p>
+              <Button
+                variant="default"
+                className="mt-4"
+                onClick={() => router.push("/dashboard/practice")}
+              >
+                Go to Practice Tests
+              </Button>
+            </div>
+          )
         )}
 
-        {/* Radar Chart Placeholder */}
+        {/* Sub-topic performance chart */}
         <div className="md:col-span-2 md:row-span-3 border border-border rounded-xl overflow-hidden flex flex-col justify-between">
           <div className="p-6 md:p-8 space-y-4">
             <div className="flex items-center gap-3">
               <h3 className="text-xl font-semibold">
-                Your Skill Proficiency Overview
+                Your Sub-topic Strengths
               </h3>
               <Popover>
                 <PopoverTrigger asChild>
@@ -153,18 +159,28 @@ const HomeTop = ({ heading = "Retake Last Test" }) => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="text-sm max-w-xs">
-                  This is how it works.
+                  This shows how many times you've correctly answered questions
+                  in each sub-topic.
                 </PopoverContent>
               </Popover>
             </div>
 
-            <div className="w-full h-[250px]">
-              <RadarChart data={[]} />
-            </div>
+            <SubTopicPerformanceChart onDataStatusChange={setHasChartData} />
 
-            <Button variant="outline" className="mt-4 w-fit">
-              Improve your Skill Proficiency
-            </Button>
+            {hasChartData ? (
+              <Button variant="outline" className="mt-4 w-fit"
+               onClick={() => router.push("/dashboard/personalized")}>
+                Improve Your Weak Areas
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                className="mt-4 w-fit"
+                onClick={() => router.push("/dashboard/practice")}
+              >
+                Go to Practice Test
+              </Button>
+            )}
           </div>
         </div>
       </div>
