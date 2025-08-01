@@ -75,6 +75,7 @@ export default function UserProgressLineChart({ onDataStatusChange }) {
   if (!chartData.length) return null;
 
   return (
+    
     <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full pt-10">
       <LineChart data={chartData} margin={{ left: 12, right: 12 }}>
         <CartesianGrid vertical={false} />
