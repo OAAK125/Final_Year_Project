@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import Navbar, { HeroHeader } from "@/ui/landing-page/nav";
+import { HeroHeader } from "@/ui/landing-page/nav";
 import { InfiniteSlider } from "@/components/motion-primitives/infinite-slider";
 import { ProgressiveBlur } from "@/components/motion-primitives/progressive-blur";
 
@@ -22,7 +22,8 @@ export default function HeroSection() {
                 </h1>
                 <p className="mt-8 max-w-2xl text-lg">
                   Master mock exams for top computer science certifications and
-                  collaborate with peers, share insights, and practice your tests.
+                  collaborate with peers, share insights, and practice your
+                  tests.
                 </p>
 
                 <div className="mt-12 flex flex-col items-center justify-center gap-2 sm:flex-row lg:justify-start">
@@ -39,8 +40,8 @@ export default function HeroSection() {
                 className="mt-10 h-56 w-full object-contain sm:h-96 lg:mt-0 lg:h-auto lg:w-1/2 lg:object-contain"
                 src="/assets/landing/img-hero.svg"
                 alt="Student taking a mock exam"
-                height={100}
-                width={100}
+                height={150}
+                width={150}
               />
             </div>
           </div>
@@ -76,7 +77,7 @@ export default function HeroSection() {
                   ))}
                 </InfiniteSlider>
 
-                {/* Fallback gradient blur bars (custom classes removed) */}
+                {/* Fallback gradient blur bars */}
                 <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-background to-transparent"></div>
                 <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-background to-transparent"></div>
 

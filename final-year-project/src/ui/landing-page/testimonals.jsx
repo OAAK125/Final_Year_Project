@@ -26,7 +26,7 @@ export default function TestimonialsSection() {
 
               <div className="border-l pl-6">
                 <cite className="block font-medium">John Doe</cite>
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
+                <span className="block text-sm text-gray-500">
                   Aspiring Cybersecurity Pro
                 </span>
               </div>

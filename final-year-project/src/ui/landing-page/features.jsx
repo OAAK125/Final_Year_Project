@@ -4,10 +4,8 @@ import {
   FileJson,
   Search,
   Settings2,
-  Sparkles,
   Timer,
   Users,
-  Zap,
 } from "lucide-react";
 
 export default function Features() {
@@ -21,7 +19,7 @@ export default function Features() {
           <h2 className="text-4xl font-semibold lg:text-5xl">
             Prepare Smarter: Your Ultimate Learning Hub
           </h2>
-          <p className="mt-4 text-base text-zinc-600 dark:text-zinc-300">
+          <p className="mt-4 text-base text-zinc-600">
             Everything you need to ace your certifications and engage with a
             thriving tech community, all in one intuitive platform.
           </p>
@@ -131,9 +129,9 @@ const CardDecorator = ({ children }) => (
     />
     <div
       aria-hidden
-      className="absolute inset-0 bg-gradient-radial from-transparent to-zinc-50 dark:to-zinc-900"
+      className="absolute inset-0 bg-gradient-radial from-transparent to-zinc-50"
     />
-    <div className="absolute inset-0 m-auto flex h-12 w-12 items-center justify-center border-t border-l border-zinc-200 dark:border-zinc-700 bg-background">
+    <div className="absolute inset-0 m-auto flex h-12 w-12 items-center justify-center border-t border-l border-zinc-200">
       {children}
     </div>
   </div>
