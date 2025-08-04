@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+
 import {
-  IconSettings,
-  IconHelp,
-  IconDotsVertical,
-  IconLogout,
-  IconUserCircle,
-} from "@tabler/icons-react";
+  Settings,
+  HelpCircle,
+  MoreVertical,
+  LogOut,
+  UserCircle,
+} from "lucide-react";
 
 import {
   Avatar,
@@ -60,19 +61,10 @@ export function NavUser() {
         user.user_metadata.name ||
         "User";
 
-      const avatar =
-        user.user_metadata.avatar_url || "";
-
+      const avatar = user.user_metadata.avatar_url || "";
       const email = user.email || "";
 
       setUserData({ name, avatar, email });
-
-      // Optional: also fetch extended profile data if needed
-      // const { data: profile } = await supabase
-      //   .from("profiles")
-      //   .select("*")
-      //   .eq("id", user.id)
-      //   .single();
     };
 
     fetchUserData();
@@ -104,7 +96,7 @@ export function NavUser() {
                   {email}
                 </span>
               </div>
-              <IconDotsVertical className="ml-auto size-4" />
+              <MoreVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
 
@@ -133,15 +125,15 @@ export function NavUser() {
 
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <IconUserCircle />
+                <UserCircle className="mr-2 h-4 w-4" />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <IconSettings />
+                <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <IconHelp />
+                <HelpCircle className="mr-2 h-4 w-4" />
                 Get Help
               </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -149,7 +141,7 @@ export function NavUser() {
             <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={handleLogout}>
-              <IconLogout />
+              <LogOut className="mr-2 h-4 w-4" />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
