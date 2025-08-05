@@ -1,7 +1,0 @@
-[
-  { "subject": "Networking", "score": 80 },
-  { "subject": "Security", "score": 70 },
-  { "subject": "Databases", "score": 85 },
-  { "subject": "Operating Systems", "score": 60 },
-  { "subject": "Cloud", "score": 75 }
-]
