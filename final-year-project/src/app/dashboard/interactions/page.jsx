@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseAuthClient } from "@supabase/supabase-js/dist/module/lib/SupabaseAuthClient";
 
 export default function Interactions() {
   const [comments, setComments] = useState([]);
@@ -9,19 +9,19 @@ export default function Interactions() {
   const [user, setUser] = useState(null);
   const [bgColor, setBgColor] = useState("bg-white");
 
-  
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await SupabaseClient.auth.getUser();
+      const {
+        data: { user },
+      } = await SupabaseAuthClient.auth.getUser();
       setUser(user);
     };
     getUser();
   }, []);
 
-
   useEffect(() => {
     const fetchComments = async () => {
-      const { data, error } = await SupabaseClient
+      const { data, error } = await SupabaseAuthClient
         .from("comments")
         .select("*")
         .order("created_at", { ascending: false });
@@ -33,7 +33,6 @@ export default function Interactions() {
     fetchComments();
   }, []);
 
-  // Random bg
   useEffect(() => {
     const colors = [
       "bg-gray-50",
@@ -50,7 +49,7 @@ export default function Interactions() {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
 
-    const { data, error } = await supabase.from("comments").insert([
+    const { data, error } = await SupabaseAuthClient.from("comments").insert([
       {
         content: newComment,
         user_id: user.id,
@@ -66,16 +65,19 @@ export default function Interactions() {
   };
 
   const handleLogin = async () => {
-    const { error } = await SupabaseClient.auth.signInWithOAuth({
-      provider: "google", // or 'github', 'discord', etc.
+    const { error } = await SupabaseAuthClient.auth.signInWithOAuth({
+      provider: "google",
     });
     if (error) console.error("Login error", error.message);
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await SupabaseAuthClient.auth.signOut();
     setUser(null);
   };
+
+
+
 
   return (
     <div className={`${bgColor} min-h-screen`}>
