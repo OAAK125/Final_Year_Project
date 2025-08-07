@@ -12,11 +12,7 @@ import {
   UserCircle,
 } from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +28,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 export function NavUser() {
   const supabase = createClient();
@@ -57,9 +54,7 @@ export function NavUser() {
       }
 
       const name =
-        user.user_metadata.full_name ||
-        user.user_metadata.name ||
-        "User";
+        user.user_metadata.full_name || user.user_metadata.name || "User";
 
       const avatar = user.user_metadata.avatar_url || "";
       const email = user.email || "";
@@ -124,18 +119,23 @@ export function NavUser() {
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserCircle className="mr-2 h-4 w-4" />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <HelpCircle className="mr-2 h-4 w-4" />
-                Get Help
-              </DropdownMenuItem>
+              <Link href="/dashboard/user/account" passHref>
+                <DropdownMenuItem asChild>
+                  <span className="flex items-center">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Account
+                  </span>
+                </DropdownMenuItem>
+              </Link>
+
+              <Link href="/dashboard/user/get-help" passHref>
+                <DropdownMenuItem asChild>
+                  <span className="flex items-center">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    Get Help
+                  </span>
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
