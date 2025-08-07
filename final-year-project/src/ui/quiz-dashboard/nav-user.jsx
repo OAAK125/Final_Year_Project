@@ -3,19 +3,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import {
-  IconSettings,
-  IconHelp,
-  IconDotsVertical,
-  IconLogout,
-  IconUserCircle,
-} from "@tabler/icons-react";
 
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+  Settings,
+  HelpCircle,
+  MoreVertical,
+  LogOut,
+  UserCircle,
+} from "lucide-react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +28,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 export function NavUser() {
   const supabase = createClient();
@@ -56,23 +54,12 @@ export function NavUser() {
       }
 
       const name =
-        user.user_metadata.full_name ||
-        user.user_metadata.name ||
-        "User";
+        user.user_metadata.full_name || user.user_metadata.name || "User";
 
-      const avatar =
-        user.user_metadata.avatar_url || "";
-
+      const avatar = user.user_metadata.avatar_url || "";
       const email = user.email || "";
 
       setUserData({ name, avatar, email });
-
-      // Optional: also fetch extended profile data if needed
-      // const { data: profile } = await supabase
-      //   .from("profiles")
-      //   .select("*")
-      //   .eq("id", user.id)
-      //   .single();
     };
 
     fetchUserData();
@@ -104,7 +91,7 @@ export function NavUser() {
                   {email}
                 </span>
               </div>
-              <IconDotsVertical className="ml-auto size-4" />
+              <MoreVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
 
@@ -132,24 +119,29 @@ export function NavUser() {
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconSettings />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconHelp />
-                Get Help
-              </DropdownMenuItem>
+              <Link href="/dashboard/user/account" passHref>
+                <DropdownMenuItem asChild>
+                  <span className="flex items-center">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Account
+                  </span>
+                </DropdownMenuItem>
+              </Link>
+
+              <Link href="/dashboard/user/get-help" passHref>
+                <DropdownMenuItem asChild>
+                  <span className="flex items-center">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    Get Help
+                  </span>
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={handleLogout}>
-              <IconLogout />
+              <LogOut className="mr-2 h-4 w-4" />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

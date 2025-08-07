@@ -110,7 +110,7 @@ export function SiteHeader() {
         <div className="w-full max-w-xs relative">
           <Input
             type="search"
-            placeholder="Search..."
+            placeholder="Search for certification..."
             className="h-8 w-full"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}

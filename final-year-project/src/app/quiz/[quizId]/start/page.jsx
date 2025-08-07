@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,6 +24,8 @@ export default function QuizQuestionPage() {
   const router = useRouter();
   const { quizId } = useParams();
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
 
   const [user, setUser] = useState(null);
   const [sessionId, setSessionId] = useState(null);
@@ -48,7 +50,9 @@ export default function QuizQuestionPage() {
 
       setUser(data.user);
 
-      const sessionParam = new URLSearchParams(window.location.search).get("session_id");
+      const sessionParam = new URLSearchParams(window.location.search).get(
+        "session_id"
+      );
       if (!sessionParam) return router.push("/dashboard");
 
       setSessionId(sessionParam);
@@ -145,7 +149,8 @@ export default function QuizQuestionPage() {
 
   const handleNext = async () => {
     if (user && question) {
-      const selectedLetter = selected !== null ? question.options[selected][0] : null;
+      const selectedLetter =
+        selected !== null ? question.options[selected][0] : null;
       const isCorrect = selectedLetter === correctLetter;
 
       await supabase.from("answers").upsert({
@@ -168,7 +173,8 @@ export default function QuizQuestionPage() {
 
   const handleSubmit = async () => {
     if (user && question) {
-      const selectedLetter = selected !== null ? question.options[selected][0] : null;
+      const selectedLetter =
+        selected !== null ? question.options[selected][0] : null;
       const isCorrect = selectedLetter === correctLetter;
 
       await supabase.from("answers").upsert({
@@ -229,7 +235,13 @@ export default function QuizQuestionPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Resume</AlertDialogCancel>
-              <AlertDialogAction onClick={() => router.push(`/quiz/${quizId}`)}>
+              <AlertDialogAction
+                onClick={() =>
+                  router.push(
+                    `/quiz/${quizId}?from=${from || "/dashboard/practice"}`
+                  )
+                }
+              >
                 Exit
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -263,7 +275,9 @@ export default function QuizQuestionPage() {
             key={index}
             onClick={() => setSelected(index)}
             className={`cursor-pointer px-4 py-3 border rounded-xl text-left text-base ${
-              selected === index ? "border-primary text-primary shadow" : "hover:bg-gray-100"
+              selected === index
+                ? "border-primary text-primary shadow"
+                : "hover:bg-gray-100"
             }`}
           >
             {option}
@@ -280,7 +294,11 @@ export default function QuizQuestionPage() {
 
         <div className="flex gap-2">
           {currentQuestionIndex > 0 && (
-            <Button variant="outline" onClick={handlePrevious} className="rounded-xl">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              className="rounded-xl"
+            >
               Previous
             </Button>
           )}

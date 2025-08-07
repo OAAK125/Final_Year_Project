@@ -81,72 +81,78 @@ const HomeTop = ({ heading = "Retake Last Test" }) => {
   }, [supabase]);
 
   return (
-    <section className="p-5">
+    <section className="pt-4 pb-2 px-5">
       <h2 className="text-2xl font-semibold mb-5">{heading}</h2>
 
-      <div className="container grid gap-5 md:grid-cols-5 md:grid-rows-3">
+      <div className="container grid gap-5 md:grid-cols-5 md:grid-rows-2">
         {/* Retake Last Test */}
-        {!loading && feature ? (
-          <div className="md:col-span-3 md:row-span-2 border border-border rounded-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
-            <div className="relative w-full h-64 md:h-full">
-              <img
-                src={feature.image}
-                alt={feature.title}
-                className="absolute inset-0 w-full h-full object-contain"
-              />
+        <div className="md:col-span-3 md:row-span-2 border border-border rounded-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+          {loading ? (
+            <div className="col-span-full flex items-center justify-center p-6 text-muted-foreground text-center">
+              Loading...
             </div>
-
-            <div className="p-6 md:p-8 space-y-4 flex flex-col justify-center">
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  QUIZ
-                </p>
-                <h3 className="text-xl font-semibold">{feature.title}</h3>
-                <p className="text-muted-foreground">
-                  Retake the test and try to improve your score.
-                </p>
+          ) : feature ? (
+            <>
+              <div className="relative w-full h-64 md:h-full">
+                <img
+                  src={feature.image}
+                  alt={feature.title}
+                  className="absolute inset-0 w-full h-full object-contain"
+                />
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Progress value={feature.score} className="w-full" />
-                  <span className="ml-3 text-sm font-medium text-muted-foreground">
-                    {feature.score}%
-                  </span>
+              <div className="p-6 md:p-8 space-y-4 flex flex-col justify-center">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    QUIZ
+                  </p>
+                  <h3 className="text-xl font-semibold">{feature.title}</h3>
+                  <p className="text-muted-foreground">
+                    Retake the test and try to improve your score.
+                  </p>
                 </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Clock className="mr-2 h-4 w-4" />
-                  <span>{feature.timeAgo}</span>
-                </div>
-              </div>
 
-              <Button
-                variant="default"
-                size="sm"
-                className="w-fit mt-2"
-                onClick={() => router.push(`/quiz/${feature.id}`)}
-              >
-                Retake the test
-              </Button>
-            </div>
-          </div>
-        ) : (
-          !loading && (
-            <div className="md:col-span-3 md:row-span-2 flex flex-col items-center justify-center border rounded-xl p-6 text-center text-muted-foreground">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Progress value={feature.score} className="w-full" />
+                    <span className="ml-3 text-sm font-medium text-muted-foreground">
+                      {feature.score}%
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Clock className="mr-2 h-4 w-4" />
+                    <span>{feature.timeAgo}</span>
+                  </div>
+                </div>
+
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-fit mt-2"
+                  onClick={() =>
+                    router.push(`/quiz/${feature.id}?from=/dashboard`)
+                  }
+                >
+                  Retake the test
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="col-span-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
               <p>No quiz history found. Take a quiz to get started!</p>
               <Button
                 variant="default"
                 className="mt-4"
                 onClick={() => router.push("/dashboard/practice")}
               >
-                Go to Practice Tests
+                Go to Practice Test
               </Button>
             </div>
-          )
-        )}
+          )}
+        </div>
 
         {/* Sub-topic performance chart */}
-        <div className="md:col-span-2 md:row-span-3 border border-border rounded-xl overflow-hidden flex flex-col justify-between">
+        <div className="md:col-span-2 md:row-span-2 border border-border rounded-xl overflow-hidden flex flex-col justify-between">
           <div className="p-6 md:p-8 space-y-4">
             <div className="flex items-center gap-3">
               <h3 className="text-xl font-semibold">
@@ -168,8 +174,11 @@ const HomeTop = ({ heading = "Retake Last Test" }) => {
             <SubTopicPerformanceChart onDataStatusChange={setHasChartData} />
 
             {hasChartData ? (
-              <Button variant="outline" className="mt-4 w-fit"
-               onClick={() => router.push("/dashboard/personalized")}>
+              <Button
+                variant="outline"
+                className="mt-4 w-fit"
+                onClick={() => router.push("/dashboard/personalized")}
+              >
                 Improve Your Weak Areas
               </Button>
             ) : (

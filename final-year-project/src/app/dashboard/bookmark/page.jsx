@@ -8,6 +8,7 @@ import {
   Users,
   Bookmark,
   Bookmark as BookmarkSolid,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -37,9 +38,11 @@ const BookmarkPage = () => {
     arrangement: "",
   });
 
-  const [selectedCertificationType, setSelectedCertificationType] = useState("");
+  const [selectedCertificationType, setSelectedCertificationType] =
+    useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedArrangement, setSelectedArrangement] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchBookmarks = async () => {
     const {
@@ -102,10 +105,14 @@ const BookmarkPage = () => {
 
   useEffect(() => {
     const fetchBookmarkedCertifications = async () => {
+      setIsLoading(true);
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
       let query = supabase.from("certifications").select(`
         id,
@@ -128,6 +135,7 @@ const BookmarkPage = () => {
       const { data, error } = await query;
       if (error) {
         console.error("Supabase Error:", error);
+        setIsLoading(false);
         return;
       }
 
@@ -141,7 +149,8 @@ const BookmarkPage = () => {
           id: cert.id,
           type: "QUIZ",
           title: cert.name,
-          description: firstQuiz?.short_description || "No description provided.",
+          description:
+            firstQuiz?.short_description || "No description provided.",
           image: firstQuiz?.image || "/assets/quiz/images.png",
           time: `${cert.duration_minutes} mins`,
           questions: cert.max_questions,
@@ -156,7 +165,9 @@ const BookmarkPage = () => {
           transformed.sort((a, b) => b.participants - a.participants);
           break;
         case "newest":
-          transformed.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          transformed.sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+          );
           break;
         case "alphabetical":
           transformed.sort((a, b) => a.title.localeCompare(b.title));
@@ -164,6 +175,7 @@ const BookmarkPage = () => {
       }
 
       setCertifications(transformed);
+      setIsLoading(false);
     };
 
     fetchBookmarkedCertifications();
@@ -251,69 +263,89 @@ const BookmarkPage = () => {
 
       <Separator />
 
-      <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
-        {certifications.map((feature) => (
-          <Link
-            key={feature.id}
-            href={`/quiz/${feature.id}`}
-            className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
+      {isLoading ? (
+        <div className="min-h-[300px] flex flex-col items-center justify-center text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+          <p className="text-sm text-gray-600">Loading...</p>
+        </div>
+      ) : certifications.length === 0 ? (
+        <div className="col-span-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
+          <p className="text-lg mb-2">
+            No Bookmarks! Go to Practice Page to bookmark some tests.
+          </p>
+          <Button
+            variant="default"
+            className="mt-4"
+            onClick={() => (window.location.href = "/dashboard/practice")}
           >
-            <div className="relative w-full aspect-video overflow-hidden">
-              <img
-                src={feature.image}
-                alt={feature.title}
-                className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
-              />
-              <div
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleBookmark(feature.id);
-                }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
+            Go to Practice Tests
+          </Button>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
+          {certifications.map((feature) => (
+            <Link
+              key={feature.id}
+              href={`/quiz/${feature.id}?from=/dashboard/bookmark`}
+              className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
+            >
+              <div className="relative w-full aspect-video overflow-hidden">
+                <img
+                  src={feature.image}
+                  alt={feature.title}
+                  className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                />
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleBookmark(feature.id);
+                  }}
                 >
-                  {bookmarkedIds.has(feature.id) ? (
-                    <BookmarkSolid className="h-4 w-4 text-primary fill-primary" />
-                  ) : (
-                    <Bookmark className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {feature.type}
-                </p>
-                <h3 className="text-lg font-semibold">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground py-2">
-                  {feature.description}
-                </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
+                  >
+                    {bookmarkedIds.has(feature.id) ? (
+                      <BookmarkSolid className="h-4 w-4 text-primary fill-primary" />
+                    ) : (
+                      <Bookmark className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>{feature.time}</span>
+              <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {feature.type}
+                  </p>
+                  <h3 className="text-lg font-semibold">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground py-2">
+                    {feature.description}
+                  </p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <FileText className="h-4 w-4" />
-                  <span>{feature.questions} Questions</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span>{feature.participants.toLocaleString()}</span>
+
+                <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{feature.time}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" />
+                    <span>{feature.questions} Questions</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span>{feature.participants.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

@@ -8,6 +8,7 @@ import {
   Users,
   Bookmark,
   Bookmark as BookmarkSolid,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -30,6 +31,7 @@ const PracticePage = () => {
   const [certificationTypes, setCertificationTypes] = useState([]);
   const [topics, setTopics] = useState([]);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
+  const [isLoading, setIsLoading] = useState(true);
 
   const [filters, setFilters] = useState({
     certificationType: "",
@@ -86,13 +88,9 @@ const PracticePage = () => {
     }
   };
 
-  // ✅ Fetch filter options
   useEffect(() => {
     const fetchFilters = async () => {
-      const [
-        { data: certTypes },
-        { data: topicsData },
-      ] = await Promise.all([
+      const [{ data: certTypes }, { data: topicsData }] = await Promise.all([
         supabase.from("certification_type").select("id, name"),
         supabase.from("topics").select("id, name"),
       ]);
@@ -105,9 +103,10 @@ const PracticePage = () => {
     fetchBookmarks();
   }, []);
 
-  // ✅ Fetch Certifications + Quizzes
   useEffect(() => {
     const fetchCertificationsAndQuizzes = async () => {
+      setIsLoading(true);
+
       let query = supabase.from("certifications").select(`
         id,
         name,
@@ -129,6 +128,7 @@ const PracticePage = () => {
       const { data, error } = await query;
       if (error) {
         console.error("Supabase Error:", error);
+        setIsLoading(false);
         return;
       }
 
@@ -139,7 +139,8 @@ const PracticePage = () => {
           id: cert.id,
           type: "QUIZ",
           title: cert.name,
-          description: firstQuiz?.short_description || "No description provided.",
+          description:
+            firstQuiz?.short_description || "No description provided.",
           image: firstQuiz?.image || "/assets/quiz/images.png",
           time: `${cert.duration_minutes} mins`,
           questions: cert.max_questions,
@@ -164,6 +165,7 @@ const PracticePage = () => {
       }
 
       setCertifications(transformed);
+      setIsLoading(false);
     };
 
     fetchCertificationsAndQuizzes();
@@ -256,70 +258,76 @@ const PracticePage = () => {
 
       <Separator />
 
-      {/* Cards */}
-      <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
-        {certifications.map((feature) => (
-          <Link
-            key={feature.id}
-            href={`/quiz/${feature.id}`}
-            className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
-          >
-            <div className="relative w-full aspect-video overflow-hidden">
-              <img
-                src={feature.image}
-                alt={feature.title}
-                className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
-              />
-              <div
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleBookmark(feature.id);
-                }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
+      {isLoading ? (
+        <div className="min-h-[300px] flex flex-col items-center justify-center text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+          <p className="text-sm text-gray-600">Loading...</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
+          {certifications.map((feature) => (
+            <Link
+              key={feature.id}
+              href={`/quiz/${feature.id}?from=/dashboard/practice`}
+              className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
+            >
+              <div className="relative w-full aspect-video overflow-hidden">
+                <img
+                  src={feature.image}
+                  alt={feature.title}
+                  className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                />
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleBookmark(feature.id);
+                  }}
                 >
-                  {bookmarkedIds.has(feature.id) ? (
-                    <BookmarkSolid className="h-4 w-4 text-primary fill-primary" />
-                  ) : (
-                    <Bookmark className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {feature.type}
-                </p>
-                <h3 className="text-lg font-semibold">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground py-2">
-                  {feature.description}
-                </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
+                  >
+                    {bookmarkedIds.has(feature.id) ? (
+                      <BookmarkSolid className="h-4 w-4 text-primary fill-primary" />
+                    ) : (
+                      <Bookmark className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>{feature.time}</span>
+              <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {feature.type}
+                  </p>
+                  <h3 className="text-lg font-semibold">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground py-2">
+                    {feature.description}
+                  </p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <FileText className="h-4 w-4" />
-                  <span>{feature.questions} Questions</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span>{feature.participants.toLocaleString()}</span>
+
+                <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{feature.time}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" />
+                    <span>{feature.questions} Questions</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span>{feature.participants.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

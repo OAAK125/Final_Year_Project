@@ -65,7 +65,9 @@ export default function CustomResultsPage() {
       });
 
       const correctCount = merged.filter((a) => a.isCorrect).length;
-      const calculatedScore = Math.round((correctCount / quizData.num_questions) * 100);
+      const calculatedScore = Math.round(
+        (correctCount / quizData.num_questions) * 100
+      );
 
       setScore(calculatedScore);
       setAnswers(merged);
@@ -96,60 +98,79 @@ export default function CustomResultsPage() {
   return (
     <section className="py-10 px-10">
       <div className="relative">
-        <Button
-          variant="ghost"
-          className="absolute left-4 top-4 z-10"
-          onClick={() => router.push("/dashboard")}
-        >
-          <X className="w-6 h-6" />
-        </Button>
-
-        <div className="container">
-          <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 text-center">
-            <h1 className="text-5xl font-semibold md:text-6xl">Assessment Report</h1>
-            <h3 className="text-muted-foreground text-lg md:text-xl">
-              You scored {score}% on your custom quiz.
-            </h3>
-            {userData && (
-              <div className="flex items-center gap-3 text-sm md:text-base">
-                <Avatar className="h-8 w-8 border">
-                  <AvatarImage src={userData.avatar} />
-                  <AvatarFallback>
-                    {userData.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span>
-                  <span className="font-semibold">{userData.name}</span>
-                  <span className="ml-1">on {dayjs(endedAt).format("MMMM D, YYYY")}</span>
-                </span>
-              </div>
-            )}
+        <div className="container max-w-5xl mx-auto flex flex-col items-center text-center space-y-4 p-4">
+          {/* Cancel / Back Button */}
+          <div className="w-full flex justify-start">
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/dashboard/personalised")}
+              className="flex items-center"
+            >
+              <X className="w-6 h-6 mr-1" />
+            </Button>
           </div>
+
+          {/* Title & Score */}
+          <h1 className="text-4xl font-semibold md:text-5xl">
+            Assessment Report
+          </h1>
+          <h3 className="text-muted-foreground text-lg md:text-xl">
+            You scored {score}% on your custom quiz.
+          </h3>
+
+          {/* User Info */}
+          {userData && (
+            <div className="flex items-center gap-3 text-sm md:text-base">
+              <Avatar className="h-8 w-8 border">
+                <AvatarImage src={userData.avatar} />
+                <AvatarFallback>
+                  {userData.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span>
+                <span className="font-semibold">{userData.name}</span>
+                <span className="ml-1">
+                  on {dayjs(endedAt).format("MMMM D, YYYY")}
+                </span>
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="mt-10 space-y-4">
-          <h2 className="text-xl font-semibold text-center">Answer Breakdown</h2>
+          <h2 className="text-xl font-semibold text-center">
+            Answer Breakdown
+          </h2>
           {answers.map((item, index) => (
             <Card
               key={index}
               className={`p-4 border rounded-xl ${
-                item.isCorrect ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50"
+                item.isCorrect
+                  ? "border-green-500 bg-green-50"
+                  : "border-red-500 bg-red-50"
               }`}
             >
-              <p className="font-medium mb-2">Q{index + 1}: {item.question}</p>
-              <p>
-                Your answer: <span className="font-semibold">{item.selectedAnswer || "Not answered"}</span>
+              <p className="font-medium mb-2">
+                Q{index + 1}: {item.question}
               </p>
               <p>
-                Correct answer: <span className="font-semibold">{item.correctAnswer}</span>
+                Your answer:{" "}
+                <span className="font-semibold">
+                  {item.selectedAnswer || "Not answered"}
+                </span>
+              </p>
+              <p>
+                Correct answer:{" "}
+                <span className="font-semibold">{item.correctAnswer}</span>
               </p>
               {item.explanation && (
                 <p className="text-sm text-gray-700 mt-1">
-                  <span className="font-medium">Explanation:</span> {item.explanation}
+                  <span className="font-medium">Explanation:</span>{" "}
+                  {item.explanation}
                 </p>
               )}
               <p

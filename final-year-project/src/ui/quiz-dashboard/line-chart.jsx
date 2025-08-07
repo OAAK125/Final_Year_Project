@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CartesianGrid,
   LineChart,
@@ -8,12 +8,14 @@ import {
   YAxis,
   Line as ReLine,
 } from "recharts";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Button } from "@/components/ui/button";
 
 const chartConfig = {
   minutes: {
@@ -27,16 +29,23 @@ const chartConfig = {
 };
 
 export default function UserProgressLineChart({ onDataStatusChange }) {
+  const router = useRouter();
   const supabase = createClient();
   const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchChartData = async () => {
+      setLoading(true);
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!user) {
+        setChartData([]);
+        setLoading(false);
+        return;
+      }
 
       const { data: sessions } = await supabase
         .from("quiz_sessions")
@@ -61,6 +70,7 @@ export default function UserProgressLineChart({ onDataStatusChange }) {
       });
 
       setChartData(data);
+      setLoading(false);
     };
 
     fetchChartData();
@@ -72,11 +82,33 @@ export default function UserProgressLineChart({ onDataStatusChange }) {
     }
   }, [chartData, onDataStatusChange]);
 
-  if (!chartData.length) return null;
+  // Handle loading and empty data states
+  if (loading || chartData.length === 0) {
+    return (
+      <div className="h-[250px] flex flex-col items-center justify-center text-muted-foreground text-sm text-center">
+        {loading ? (
+          "Loading..."
+        ) : (
+          <>
+            <p>No data available. Try more Practice Tests!</p>
+            <Button
+              variant="default"
+              className="mt-4"
+              onClick={() => router.push("/dashboard/practice")}
+            >
+              Go to Practice Test
+            </Button>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
-    
-    <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full pt-10">
+    <ChartContainer
+      config={chartConfig}
+      className="aspect-auto h-[250px] w-full pt-10"
+    >
       <LineChart data={chartData} margin={{ left: 12, right: 12 }}>
         <CartesianGrid vertical={false} />
         <XAxis

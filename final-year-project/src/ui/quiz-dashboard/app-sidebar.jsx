@@ -57,7 +57,7 @@ const quizMenu = [
     solidIcon: null,
   },
   {
-    name: "Bookmarked",
+    name: "Bookmarks",
     href: "/dashboard/bookmark",
     icon: BiBookmark,
     solidIcon: BiSolidBookmark,

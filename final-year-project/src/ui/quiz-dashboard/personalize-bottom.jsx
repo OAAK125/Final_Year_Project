@@ -32,13 +32,17 @@ import { createClient } from "@/utils/supabase/client";
 export default function PersonalizeBottom() {
   const supabase = createClient();
   const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchFlagged = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data } = await supabase
         .from("flagged_questions")
@@ -46,6 +50,7 @@ export default function PersonalizeBottom() {
         .eq("user_id", user.id);
 
       setQuestions(data || []);
+      setLoading(false);
     };
 
     fetchFlagged();
@@ -84,63 +89,77 @@ export default function PersonalizeBottom() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {questions.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-semibold">
-                    {item.questions?.certification?.name || "-"}
-                  </TableCell>
-                  <TableCell>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="link" className="p-0 h-auto text-left">
-                          {item.questions?.question_text || "View Question"}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Flagged Question</AlertDialogTitle>
-                          <AlertDialogDescription className="space-y-4">
-                            <div>
-                              <strong>Question:</strong> {item.questions?.question_text}
-                            </div>
-                            <div>
-                              <strong>Options:</strong>
-                              <ul className="list-disc list-inside">
-                                {item.questions?.options?.map((opt, idx) => (
-                                  <li key={idx}>{opt}</li>
-                                ))}
-                              </ul>
-                            </div>
-                            <div>
-                              <strong>Correct Answer:</strong> {item.questions?.correct_answer}
-                            </div>
-                            <div>
-                              <strong>Explanation:</strong> {item.questions?.explanation}
-                            </div>
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>
-                            Close
-                          </AlertDialogCancel>
-                          <Button onClick={() => markAsUnderstood(item.id)}>
-                            Mark as Understood
-                          </Button>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => markAsUnderstood(item.id)}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
+                    Loading...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : questions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
+                    No data available.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                questions.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-semibold">
+                      {item.questions?.certification?.name || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="link" className="p-0 h-auto text-left">
+                            {item.questions?.question_text || "View Question"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Flagged Question</AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-4">
+                              <div>
+                                <strong>Question:</strong> {item.questions?.question_text}
+                              </div>
+                              <div>
+                                <strong>Options:</strong>
+                                <ul className="list-disc list-inside">
+                                  {item.questions?.options?.map((opt, idx) => (
+                                    <li key={idx}>{opt}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                              <div>
+                                <strong>Correct Answer:</strong> {item.questions?.correct_answer}
+                              </div>
+                              <div>
+                                <strong>Explanation:</strong> {item.questions?.explanation}
+                              </div>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>
+                              Close
+                            </AlertDialogCancel>
+                            <Button onClick={() => markAsUnderstood(item.id)}>
+                              Mark as Understood
+                            </Button>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => markAsUnderstood(item.id)}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>

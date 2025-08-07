@@ -8,7 +8,7 @@ import {
   FileText,
   Users,
   Bookmark,
-  Bookmark as BookmarkSolid,
+  Bookmark as BookmarkSolid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
@@ -19,9 +19,11 @@ const HomeBottom = () => {
 
   const [certifications, setCertifications] = useState([]);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchRecommendations = async () => {
+      setIsLoading(true);
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -52,24 +54,34 @@ const HomeBottom = () => {
         )[0]?.[0];
       }
 
-      let certQuery = supabase.from("certifications").select(
-        `id, name, duration_minutes, max_questions, topic_id, quizzes(participants, short_description, image)`
-      );
+      let certQuery = supabase
+        .from("certifications")
+        .select(
+          `id, name, duration_minutes, max_questions, topic_id, quizzes(participants, short_description, image)`
+        );
 
       if (topicIdToUse) {
         certQuery = certQuery.eq("topic_id", topicIdToUse);
       }
 
-      const { data: certs } = await certQuery;
+      let { data: certs } = await certQuery;
 
-      let sortedCerts = certs;
-      if (!topicIdToUse) {
-        sortedCerts = [...certs].sort(
-          (a, b) => (b.quizzes?.[0]?.participants || 0) - (a.quizzes?.[0]?.participants || 0)
-        );
+      // Fallback to 3 most popular if none found
+      if (!certs || certs.length === 0) {
+        const { data: fallbackCerts } = await supabase
+          .from("certifications")
+          .select(
+            `id, name, duration_minutes, max_questions, topic_id, quizzes(participants, short_description, image)`
+          )
+          .order("quizzes.participants", { ascending: false })
+          .limit(3);
+
+        certs = fallbackCerts;
       }
 
-      const transformed = (sortedCerts || []).map((cert) => {
+      const limitedCerts = (certs || []).slice(0, 3);
+
+      const transformed = limitedCerts.map((cert) => {
         const quiz = cert.quizzes?.[0];
         return {
           id: cert.id,
@@ -84,6 +96,7 @@ const HomeBottom = () => {
       });
 
       setCertifications(transformed);
+      setIsLoading(false);
     };
 
     const fetchBookmarks = async () => {
@@ -130,7 +143,7 @@ const HomeBottom = () => {
   };
 
   return (
-    <section className="p-5">
+    <section className="pt-2 pb-5 px-5">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-semibold">Recommended Tests</h2>
         <Link
@@ -140,70 +153,75 @@ const HomeBottom = () => {
           Go to Practice Tests
         </Link>
       </div>
-
-      <div className="grid gap-5 md:grid-cols-3">
-        {certifications.map((cert) => (
-          <Link
-            key={cert.id}
-            href={`/quiz/${cert.id}`}
-            className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
-          >
-            <div className="relative w-full aspect-video overflow-hidden">
-              <img
-                src={cert.image}
-                alt={cert.title}
-                className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
-              />
-              <div
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleBookmark(cert.id);
-                }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
+      {isLoading ? (
+        <div className="min-h-[200px] flex flex-col items-center justify-center text-center">
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-3">
+          {certifications.map((cert) => (
+            <Link
+              key={cert.id}
+              href={`/quiz/${cert.id}`}
+              className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
+            >
+              <div className="relative w-full aspect-video overflow-hidden">
+                <img
+                  src={cert.image}
+                  alt={cert.title}
+                  className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                />
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleBookmark(cert.id);
+                  }}
                 >
-                  {bookmarkedIds.has(cert.id) ? (
-                    <BookmarkSolid className="h-4 w-4 text-primary fill-primary" />
-                  ) : (
-                    <Bookmark className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {cert.type}
-                </p>
-                <h3 className="text-lg font-semibold">{cert.title}</h3>
-                <p className="text-sm text-muted-foreground py-2">
-                  {cert.description}
-                </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
+                  >
+                    {bookmarkedIds.has(cert.id) ? (
+                      <BookmarkSolid className="h-4 w-4 text-primary fill-primary" />
+                    ) : (
+                      <Bookmark className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>{cert.time}</span>
+              <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {cert.type}
+                  </p>
+                  <h3 className="text-lg font-semibold">{cert.title}</h3>
+                  <p className="text-sm text-muted-foreground py-2">
+                    {cert.description}
+                  </p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <FileText className="h-4 w-4" />
-                  <span>{cert.questions} Questions</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span>{cert.participants.toLocaleString()}</span>
+
+                <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{cert.time}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" />
+                    <span>{cert.questions} Questions</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span>{cert.participants.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

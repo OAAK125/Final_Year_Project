@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Mail, MapPin, Phone, Settings2, Sparkles, Zap } from "lucide-react";
-import { ReactNode } from "react";
+import { Mail, MapPin, Phone } from "lucide-react";
+
 
 export default function ContactUs() {
   return (

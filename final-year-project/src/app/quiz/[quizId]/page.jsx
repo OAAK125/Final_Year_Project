@@ -25,7 +25,7 @@ export default function QuizInfoPage() {
   const [error, setError] = useState(null);
 
   const searchParams = useSearchParams();
-  const from = searchParams.get("from");
+  const from = searchParams.get("from"); // Get `from` param from URL
 
   useEffect(() => {
     async function fetchQuiz() {
@@ -104,8 +104,15 @@ export default function QuizInfoPage() {
       return;
     }
 
-    router.push(`/quiz/${quizId}/start?session_id=${sessionData.id}`);
+    // Go to the quiz start page
+    router.push(`/quiz/${quizId}/start?session_id=${sessionData.id}&from=${from || "/dashboard/practice"}`);
+
   };
+
+  const handleClose = () => {
+  router.push(from || "/dashboard/practice"); // fallback to practice if no from
+};
+
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-white px-4">
@@ -144,15 +151,7 @@ export default function QuizInfoPage() {
           variant="ghost"
           size="icon"
           className="absolute top-6 left-6 text-black hover:text-primary"
-          onClick={() => {
-            if (from === "/dashboard/practice") {
-              router.push("/dashboard/practice");
-            } else if (from === "/dashboard") {
-              router.push("/dashboard");
-            } else {
-              router.push("/dashboard/practice"); // fallback
-            }
-          }}
+          onClick={handleClose}
         >
           <X className="w-5 h-5" />
         </Button>

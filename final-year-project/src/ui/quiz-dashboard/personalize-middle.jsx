@@ -11,10 +11,9 @@ import {
 } from "@/components/ui/popover";
 import dynamic from "next/dynamic";
 
-const UserProgressLineChart = dynamic(
-  () => import("@/ui/quiz-dashboard/line-chart"),
-  { ssr: false }
-);
+const UserProgressLineChart = dynamic(() => import("@/ui/quiz-dashboard/line-chart"));
+
+// Bar chart remains unchanged
 const SubTopicPerformanceChart = dynamic(
   () => import("@/ui/quiz-dashboard/bar-chart"),
   { ssr: false }
@@ -22,7 +21,6 @@ const SubTopicPerformanceChart = dynamic(
 
 export default function PersonalizeMiddle() {
   const router = useRouter();
-  const [hasLineChartData, setHasLineChartData] = useState(true);
   const [hasBarChartData, setHasBarChartData] = useState(true);
 
   return (
@@ -43,26 +41,10 @@ export default function PersonalizeMiddle() {
             </PopoverContent>
           </Popover>
         </div>
-
-        <UserProgressLineChart onDataStatusChange={setHasLineChartData} />
-
-        {!hasLineChartData && (
-          <div className="md:col-span-3 md:row-span-2 flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-            <p>
-              Sorry, can't get enough information for this. Try a Practice Test!
-            </p>
-            <Button
-              variant="default"
-              className="mt-4"
-              onClick={() => router.push("/dashboard/practice")}
-            >
-              Go to Practice Tests
-            </Button>
-          </div>
-        )}
+        <UserProgressLineChart />
       </div>
 
-      {/* Sub-topic Performance Chart Section */}
+      {/* Bar Chart Section */}
       <div className="border border-border rounded-xl overflow-hidden p-6 md:p-8 space-y-4">
         <div className="flex items-center gap-3">
           <h3 className="text-xl font-semibold">Your Sub-topic Strengths</h3>
@@ -82,16 +64,13 @@ export default function PersonalizeMiddle() {
         <SubTopicPerformanceChart onDataStatusChange={setHasBarChartData} />
 
         {!hasBarChartData && (
-          <div className="md:col-span-3 md:row-span-2 flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-            <p>
-              Try a Practice Test for more information.
-            </p>
+          <div className="col-span-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
             <Button
               variant="default"
               className="mt-4"
               onClick={() => router.push("/dashboard/practice")}
             >
-              Go to Practice Tests
+              Go to Practice Test
             </Button>
           </div>
         )}
