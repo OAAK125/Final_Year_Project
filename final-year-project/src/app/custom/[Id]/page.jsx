@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Flag, Loader2, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -16,7 +16,6 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogCancel,
-  AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 
 export default function CustomQuizPage() {
@@ -31,7 +30,6 @@ export default function CustomQuizPage() {
   const [selected, setSelected] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isFlagged, setIsFlagged] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -99,43 +97,10 @@ export default function CustomQuizPage() {
     if (user && customId) fetchCustomQuiz();
   }, [user, customId, supabase]);
 
-  useEffect(() => {
-    const checkFlagged = async () => {
-      if (!user || !question) return;
-      const { data } = await supabase
-        .from("flagged_questions")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("question_id", question.id)
-        .single();
-
-      setIsFlagged(!!data);
-    };
-
-    checkFlagged();
-  }, [user, question]);
-
-  const handleFlag = async () => {
-    if (!user || !question) return;
-    if (isFlagged) {
-      await supabase
-        .from("flagged_questions")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("question_id", question.id);
-      setIsFlagged(false);
-    } else {
-      await supabase.from("flagged_questions").insert({
-        user_id: user.id,
-        question_id: question.id,
-      });
-      setIsFlagged(true);
-    }
-  };
-
   const handleSubmit = async () => {
     if (!user || !question) return;
-    const selectedLetter = selected !== null ? question.options[selected][0] : null;
+    const selectedLetter =
+      selected !== null ? question.options[selected][0] : null;
     const isCorrect = selectedLetter === correctLetter;
 
     await supabase.from("custom_answers").insert({
@@ -163,8 +128,9 @@ export default function CustomQuizPage() {
 
   if (loading || !question) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin h-6 w-6 mr-2" /> Loading...
+      <div className="min-h-screen flex flex-col items-center justify-center text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+        <p className="text-sm text-gray-600">Loading...</p>
       </div>
     );
   }
@@ -173,20 +139,16 @@ export default function CustomQuizPage() {
     <div className="max-w-3xl mx-auto min-h-screen p-6 flex flex-col justify-between">
       {/* Top Controls */}
       <div className="flex items-center justify-between mb-6">
-        <Button variant="ghost" onClick={() => router.push("/dashboard")}> 
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/dashboard/personalized")}
+        >
           <X className="w-6 h-6" />
         </Button>
         <Progress value={progress} className="flex-1 mx-4 h-2" />
         <div className="text-sm text-gray-600">
           {currentQuestionIndex + 1}/{numQuestions}
         </div>
-        <Button
-          variant="ghost"
-          onClick={handleFlag}
-          className={isFlagged ? "text-primary" : "text-black"}
-        >
-          <Flag className={`w-5 h-5 ${isFlagged ? "fill-current" : ""}`} />
-        </Button>
       </div>
 
       <h2 className="text-lg font-semibold text-center mb-4">
@@ -247,7 +209,9 @@ export default function CustomQuizPage() {
           </Button>
         ) : (
           <Button variant="outline" onClick={handleNext}>
-            {currentQuestionIndex === totalQuestions - 1 ? "End Quiz" : "Next Question"}
+            {currentQuestionIndex === totalQuestions - 1
+              ? "End Quiz"
+              : "Next Question"}
           </Button>
         )}
       </div>

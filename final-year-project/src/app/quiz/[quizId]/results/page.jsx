@@ -126,42 +126,43 @@ const QuizResultsPage = () => {
   return (
     <section className="py-10 px-10">
       <div className="relative">
-        {/* Close Button */}
-        <Button
-          variant="ghost"
-          className="absolute left-4 top-4 z-10"
-          onClick={() => router.push(`/quiz/${quizId}`)}
-        >
-          <X className="w-6 h-6" />
-        </Button>
-
-        <div className="container">
-          <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 text-center">
-            <h1 className="text-5xl font-semibold md:text-6xl">{title}</h1>
-            <h3 className="text-muted-foreground text-lg md:text-xl">
-              {description}
-            </h3>
-
-            {/* User Info */}
-            {userData && (
-              <div className="flex items-center gap-3 text-sm md:text-base">
-                <Avatar className="h-8 w-8 border">
-                  <AvatarImage src={userData.avatar} />
-                  <AvatarFallback>
-                    {userData.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span>
-                  <span className="font-semibold">{userData.name}</span>
-                  <span className="ml-1">on {formattedDate}</span>
-                </span>
-              </div>
-            )}
+        <div className="container max-w-5xl mx-auto flex flex-col items-center text-center space-y-4 p-4">
+          {/* Cancel / Close Button */}
+          <div className="w-full flex justify-start">
+            <Button
+              variant="ghost"
+              onClick={() => router.push(`/quiz/${quizId}`)}
+              className="flex items-center"
+            >
+              <X className="w-6 h-6 mr-1" />
+            </Button>
           </div>
+
+          {/* Title & Description */}
+          <h1 className="text-4xl font-semibold md:text-5xl">{title}</h1>
+          <h3 className="text-muted-foreground text-lg md:text-xl">
+            {description}
+          </h3>
+
+          {/* User Info */}
+          {userData && (
+            <div className="flex items-center gap-3 text-sm md:text-base">
+              <Avatar className="h-8 w-8 border">
+                <AvatarImage src={userData.avatar} />
+                <AvatarFallback>
+                  {userData.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span>
+                <span className="font-semibold">{userData.name}</span>
+                <span className="ml-1">on {formattedDate}</span>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Answer Breakdown */}

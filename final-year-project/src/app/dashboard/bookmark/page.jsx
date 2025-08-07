@@ -38,7 +38,8 @@ const BookmarkPage = () => {
     arrangement: "",
   });
 
-  const [selectedCertificationType, setSelectedCertificationType] = useState("");
+  const [selectedCertificationType, setSelectedCertificationType] =
+    useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedArrangement, setSelectedArrangement] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -148,7 +149,8 @@ const BookmarkPage = () => {
           id: cert.id,
           type: "QUIZ",
           title: cert.name,
-          description: firstQuiz?.short_description || "No description provided.",
+          description:
+            firstQuiz?.short_description || "No description provided.",
           image: firstQuiz?.image || "/assets/quiz/images.png",
           time: `${cert.duration_minutes} mins`,
           questions: cert.max_questions,
@@ -163,7 +165,9 @@ const BookmarkPage = () => {
           transformed.sort((a, b) => b.participants - a.participants);
           break;
         case "newest":
-          transformed.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          transformed.sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+          );
           break;
         case "alphabetical":
           transformed.sort((a, b) => a.title.localeCompare(b.title));
@@ -266,7 +270,9 @@ const BookmarkPage = () => {
         </div>
       ) : certifications.length === 0 ? (
         <div className="col-span-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-          <p className="text-lg mb-2">No Bookmarks! Go to Practice Page to bookmark some tests.</p>
+          <p className="text-lg mb-2">
+            No Bookmarks! Go to Practice Page to bookmark some tests.
+          </p>
           <Button
             variant="default"
             className="mt-4"
@@ -280,7 +286,7 @@ const BookmarkPage = () => {
           {certifications.map((feature) => (
             <Link
               key={feature.id}
-              href={`/quiz/${feature.id}`}
+              href={`/quiz/${feature.id}?from=/dashboard/bookmark`}
               className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
             >
               <div className="relative w-full aspect-video overflow-hidden">

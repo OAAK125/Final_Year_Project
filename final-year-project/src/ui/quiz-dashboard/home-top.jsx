@@ -129,7 +129,9 @@ const HomeTop = ({ heading = "Retake Last Test" }) => {
                   variant="default"
                   size="sm"
                   className="w-fit mt-2"
-                  onClick={() => router.push(`/quiz/${feature.id}`)}
+                  onClick={() =>
+                    router.push(`/quiz/${feature.id}?from=/dashboard`)
+                  }
                 >
                   Retake the test
                 </Button>

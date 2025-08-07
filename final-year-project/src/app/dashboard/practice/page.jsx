@@ -39,7 +39,8 @@ const PracticePage = () => {
     arrangement: "",
   });
 
-  const [selectedCertificationType, setSelectedCertificationType] = useState("");
+  const [selectedCertificationType, setSelectedCertificationType] =
+    useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedArrangement, setSelectedArrangement] = useState("");
 
@@ -89,10 +90,7 @@ const PracticePage = () => {
 
   useEffect(() => {
     const fetchFilters = async () => {
-      const [
-        { data: certTypes },
-        { data: topicsData },
-      ] = await Promise.all([
+      const [{ data: certTypes }, { data: topicsData }] = await Promise.all([
         supabase.from("certification_type").select("id, name"),
         supabase.from("topics").select("id, name"),
       ]);
@@ -261,7 +259,7 @@ const PracticePage = () => {
       <Separator />
 
       {isLoading ? (
-        <div className="min-h-screen flex flex-col items-center justify-center text-center">
+        <div className="min-h-[300px] flex flex-col items-center justify-center text-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
           <p className="text-sm text-gray-600">Loading...</p>
         </div>
@@ -270,7 +268,7 @@ const PracticePage = () => {
           {certifications.map((feature) => (
             <Link
               key={feature.id}
-              href={`/quiz/${feature.id}`}
+              href={`/quiz/${feature.id}?from=/dashboard/practice`}
               className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
             >
               <div className="relative w-full aspect-video overflow-hidden">

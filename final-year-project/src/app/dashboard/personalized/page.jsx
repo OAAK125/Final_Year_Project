@@ -32,7 +32,7 @@ const PersonalizedPage = () => {
       </section>
 
       {isLoading ? (
-        <div className="min-h-screen flex flex-col items-center justify-center text-center">
+        <div className="min-h-[300px] flex flex-col items-center justify-center text-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
           <p className="text-sm text-gray-600">Loading...</p>
         </div>

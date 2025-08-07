@@ -105,12 +105,14 @@ export default function QuizInfoPage() {
     }
 
     // Go to the quiz start page
-    router.push(`/quiz/${quizId}/start?session_id=${sessionData.id}`);
+    router.push(`/quiz/${quizId}/start?session_id=${sessionData.id}&from=${from || "/dashboard/practice"}`);
+
   };
 
   const handleClose = () => {
-    router.push(from || "/dashboard/practice");
-  };
+  router.push(from || "/dashboard/practice"); // fallback to practice if no from
+};
+
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-white px-4">
