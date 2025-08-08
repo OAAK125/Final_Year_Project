@@ -137,7 +137,7 @@ export default function CustomQuizPage() {
 
   return (
     <div className="max-w-3xl mx-auto min-h-screen p-6 flex flex-col justify-between">
-      {/* Top Controls */}
+      {/* Top Bar */}
       <div className="flex items-center justify-between mb-6">
         <Button
           variant="ghost"
@@ -145,17 +145,20 @@ export default function CustomQuizPage() {
         >
           <X className="w-6 h-6" />
         </Button>
-        <Progress value={progress} className="flex-1 mx-4 h-2" />
-        <div className="text-sm text-gray-600">
+
+        <Progress value={progress} className="flex-1 mx-4 h-2 bg-gray-200" />
+        <div className="text-sm font-medium text-black">
           {currentQuestionIndex + 1}/{numQuestions}
         </div>
       </div>
 
-      <h2 className="text-lg font-semibold text-center mb-4">
-        {question.question_text}
-      </h2>
+      {/* Question */}
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-semibold">{question.question_text}</h2>
+      </div>
 
-      <div className="space-y-3 mb-6">
+      {/* Options */}
+      <div className="space-y-4 mb-6">
         {question.options.map((opt, idx) => {
           const isSelected = selected === idx;
           const isCorrect = opt[0] === correctLetter;
@@ -167,8 +170,12 @@ export default function CustomQuizPage() {
             <Card
               key={idx}
               onClick={() => !submitted && setSelected(idx)}
-              className={`px-4 py-3 cursor-pointer border rounded-xl text-left text-base
-                ${isSelected && !submitted ? "border-primary text-primary" : ""}
+              className={`cursor-pointer px-4 py-3 border rounded-xl text-left text-base
+                ${
+                  isSelected && !submitted
+                    ? "border-primary text-primary shadow"
+                    : "hover:bg-gray-100"
+                }
                 ${isRight ? "bg-green-500 text-white" : ""}
                 ${isWrong ? "bg-red-500 text-white" : ""}
                 ${showCorrect ? "bg-green-500 text-white" : ""}
@@ -180,7 +187,8 @@ export default function CustomQuizPage() {
         })}
       </div>
 
-      <div className="flex flex-wrap justify-center items-center gap-4 border-t pt-4">
+      {/* Bottom Bar */}
+      <div className="flex justify-center items-center gap-4 border-t pt-4 flex-wrap">
         {submitted && (
           <AlertDialog open={showExplanation} onOpenChange={setShowExplanation}>
             <AlertDialogTrigger asChild>
@@ -204,14 +212,15 @@ export default function CustomQuizPage() {
           <Button
             variant={selected === null ? "outline" : "default"}
             onClick={handleSubmit}
+            className="rounded-xl"
           >
             {selected === null ? "I don't know" : "Submit"}
           </Button>
         ) : (
-          <Button variant="outline" onClick={handleNext}>
+          <Button variant="outline" onClick={handleNext} className="rounded-xl">
             {currentQuestionIndex === totalQuestions - 1
               ? "End Quiz"
-              : "Next Question"}
+              : "Next question"}
           </Button>
         )}
       </div>
