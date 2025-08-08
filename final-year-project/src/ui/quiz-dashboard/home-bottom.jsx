@@ -162,7 +162,7 @@ const HomeBottom = () => {
           {certifications.map((cert) => (
             <Link
               key={cert.id}
-              href={`/quiz/${cert.id}`}
+              href={`/quiz/${cert.id}?from=/dashboard`}
               className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
             >
               <div className="relative w-full aspect-video overflow-hidden">
