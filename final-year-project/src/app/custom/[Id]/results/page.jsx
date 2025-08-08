@@ -103,7 +103,7 @@ export default function CustomResultsPage() {
           <div className="w-full flex justify-start">
             <Button
               variant="ghost"
-              onClick={() => router.push("/dashboard/personalised")}
+              onClick={() => router.push("/dashboard/personalized")}
               className="flex items-center"
             >
               <X className="w-6 h-6 mr-1" />

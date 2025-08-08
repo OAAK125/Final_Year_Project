@@ -48,7 +48,7 @@ export function SiteHeader() {
 
       const readIds = new Set(readData?.map((n) => n.quiz_id));
 
-      const combined = quizzes.map((item) => ({
+      const combined = (quizzes || []).map((item) => ({
         ...item,
         read: readIds.has(item.id),
       }));
@@ -68,7 +68,7 @@ export function SiteHeader() {
       .select("id, name")
       .ilike("name", `%${term}%`);
 
-    setResults(data);
+    setResults(data || []);
   };
 
   const markAllAsRead = async () => {
@@ -99,7 +99,16 @@ export function SiteHeader() {
       prev.map((n) => (n.id === quizId ? { ...n, read: true } : n))
     );
     setUnreadCount((prev) => Math.max(prev - 1, 0));
-    router.push(`/quiz/${certId}`);
+
+    // Add `from=notifications`
+    router.push(`/quiz/${certId}?from=/dashboard`);
+  };
+
+  const handleSearchClick = (certId) => {
+    // Add `from=search`
+    router.push(`/quiz/${certId}?from=/dashboard`);
+    setSearch("");
+    setResults([]);
   };
 
   return (
@@ -107,6 +116,7 @@ export function SiteHeader() {
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
+
         <div className="w-full max-w-xs relative">
           <Input
             type="search"
@@ -121,7 +131,7 @@ export function SiteHeader() {
                 <div
                   key={cert.id}
                   className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => router.push(`/quiz/${cert.id}`)}
+                  onClick={() => handleSearchClick(cert.id)}
                 >
                   {cert.name}
                 </div>
@@ -163,7 +173,7 @@ export function SiteHeader() {
                   </div>
                   <div className="flex-1">
                     <p>
-                      <span className="font-bold">Certify Prep</span> released a new certification quiz {" "}
+                      <span className="font-bold">Certify Prep</span> released a new certification quiz{" "}
                       <span className="font-semibold">{item.certifications.name}</span>
                     </p>
                     <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
