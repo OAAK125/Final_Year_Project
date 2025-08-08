@@ -3,10 +3,11 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { BiMenu, BiX } from "react-icons/bi";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+// List of Nav links and their hrefs
 const menuItems = [
   { name: "Home", href: "#HeroSection" },
   { name: "Features", href: "#Features" },
@@ -19,6 +20,7 @@ export const HeroHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    // Scroll Detection for if user scrolls more than 50px down
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
@@ -33,6 +35,7 @@ export const HeroHeader = () => {
         className="fixed z-20 w-full px-2"
       >
         <div
+          // Effects when scrolling
           className={cn(
             "mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12",
             isScrolled &&
@@ -40,7 +43,7 @@ export const HeroHeader = () => {
           )}
         >
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
-            {/* Logo & Mobile Hamburger */}
+            {/* Logo & Mobile Hamburger  */}
             <div className="flex w-full justify-between lg:w-auto">
               <Link href="#HeroSection" className="flex items-center gap-2">
                 <Image
@@ -58,9 +61,9 @@ export const HeroHeader = () => {
                 className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden"
               >
                 {menuState ? (
-                  <BiX size={24} className="transition-all duration-200" />
+                  <X size={24} className="transition-all duration-200" />
                 ) : (
-                  <BiMenu size={24} className="transition-all duration-200" />
+                  <Menu size={24} className="transition-all duration-200" />
                 )}
               </button>
             </div>

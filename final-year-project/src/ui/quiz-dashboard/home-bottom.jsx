@@ -1,105 +1,227 @@
 "use client";
 
-import { Clock, FileText, Users, Bookmark } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  Clock,
+  FileText,
+  Users,
+  Bookmark,
+  Bookmark as BookmarkSolid
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { createClient } from "@/utils/supabase/client";
 
 const HomeBottom = () => {
-  const features = [
-    {
-      id: "feature-1",
-      type: "QUIZ",
-      title: "AWS Cloud Architect",
-      description: "Test your knowledge of AWS architecture and services.",
-      image: "./assets/quiz/images.png",
-      time: "90 mins",
-      questions: 60,
-      participants: 1200,
-    },
-    {
-      id: "feature-2",
-      type: "QUIZ",
-      title: "Google Cloud Associate Engineer",
-      description: "Evaluate your understanding of Google Cloud fundamentals.",
-      image: "./assets/quiz/images.png",
-      time: "75 mins",
-      questions: 50,
-      participants: 950,
-    },
-    {
-      id: "feature-3",
-      type: "QUIZ",
-      title: "Microsoft Azure Fundamentals",
-      description: "Assess your grasp of core Azure concepts and services.",
-      image: "./assets/quiz/images.png",
-      time: "60 mins",
-      questions: 40,
-      participants: 760,
-    },
-  ];
+  const supabase = createClient();
+  const router = useRouter();
+
+  const [certifications, setCertifications] = useState([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      setIsLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data: sessions } = await supabase
+        .from("quiz_sessions")
+        .select("certification_id")
+        .eq("user_id", user.id);
+
+      let topicIdToUse = null;
+
+      if (sessions && sessions.length > 0) {
+        const certIds = sessions.map((s) => s.certification_id);
+        const { data: userCerts } = await supabase
+          .from("certifications")
+          .select("id, topic_id")
+          .in("id", certIds);
+
+        const topicFrequency = {};
+        userCerts.forEach((c) => {
+          topicFrequency[c.topic_id] = (topicFrequency[c.topic_id] || 0) + 1;
+        });
+
+        topicIdToUse = Object.entries(topicFrequency).sort(
+          (a, b) => b[1] - a[1]
+        )[0]?.[0];
+      }
+
+      let certQuery = supabase
+        .from("certifications")
+        .select(
+          `id, name, duration_minutes, max_questions, topic_id, quizzes(participants, short_description, image)`
+        );
+
+      if (topicIdToUse) {
+        certQuery = certQuery.eq("topic_id", topicIdToUse);
+      }
+
+      let { data: certs } = await certQuery;
+
+      // Fallback to 3 most popular if none found
+      if (!certs || certs.length === 0) {
+        const { data: fallbackCerts } = await supabase
+          .from("certifications")
+          .select(
+            `id, name, duration_minutes, max_questions, topic_id, quizzes(participants, short_description, image)`
+          )
+          .order("quizzes.participants", { ascending: false })
+          .limit(3);
+
+        certs = fallbackCerts;
+      }
+
+      const limitedCerts = (certs || []).slice(0, 3);
+
+      const transformed = limitedCerts.map((cert) => {
+        const quiz = cert.quizzes?.[0];
+        return {
+          id: cert.id,
+          type: "QUIZ",
+          title: cert.name,
+          description: quiz?.short_description || "No description provided.",
+          image: quiz?.image || "/assets/quiz/images.png",
+          time: `${cert.duration_minutes} mins`,
+          questions: cert.max_questions,
+          participants: quiz?.participants || 0,
+        };
+      });
+
+      setCertifications(transformed);
+      setIsLoading(false);
+    };
+
+    const fetchBookmarks = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("bookmarks")
+        .select("certification_id")
+        .eq("user_id", user.id);
+
+      setBookmarkedIds(new Set(data?.map((b) => b.certification_id)));
+    };
+
+    fetchRecommendations();
+    fetchBookmarks();
+  }, []);
+
+  const toggleBookmark = async (certId) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    if (bookmarkedIds.has(certId)) {
+      await supabase
+        .from("bookmarks")
+        .delete()
+        .match({ user_id: user.id, certification_id: certId });
+      setBookmarkedIds((prev) => {
+        const updated = new Set(prev);
+        updated.delete(certId);
+        return updated;
+      });
+    } else {
+      await supabase.from("bookmarks").insert({
+        user_id: user.id,
+        certification_id: certId,
+      });
+      setBookmarkedIds((prev) => new Set(prev).add(certId));
+    }
+  };
 
   return (
-    <section className="p-5">
+    <section className="pt-2 pb-5 px-5">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-semibold">Recommended Tests</h2>
         <Link
-          href="#"
+          href="/dashboard/practice"
           className="text-sm text-muted-foreground hover:underline"
         >
           Go to Practice Tests
         </Link>
       </div>
-
-      <div className="grid gap-5 md:grid-cols-3">
-        {features.map((feature) => (
-          <div
-            key={feature.id}
-            className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted hover:cursor-pointer"
-          >
-            <div className="relative w-full aspect-video overflow-hidden">
-              <img
-                src={feature.image}
-                alt={feature.title}
-                className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-105"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
-              >
-                <Bookmark className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {feature.type}
-                </p>
-                <h3 className="text-lg font-semibold">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground py-2">
-                  {feature.description}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>{feature.time}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <FileText className="h-4 w-4" />
-                  <span>{feature.questions} Questions</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span>{feature.participants.toLocaleString()}</span>
+      {isLoading ? (
+        <div className="min-h-[200px] flex flex-col items-center justify-center text-center">
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-3">
+          {certifications.map((cert) => (
+            <Link
+              key={cert.id}
+              href={`/quiz/${cert.id}`}
+              className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
+            >
+              <div className="relative w-full aspect-video overflow-hidden">
+                <img
+                  src={cert.image}
+                  alt={cert.title}
+                  className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                />
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleBookmark(cert.id);
+                  }}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 bg-white/80 shadow-sm rounded-full"
+                  >
+                    {bookmarkedIds.has(cert.id) ? (
+                      <BookmarkSolid className="h-4 w-4 text-primary fill-primary" />
+                    ) : (
+                      <Bookmark className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
+
+              <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {cert.type}
+                  </p>
+                  <h3 className="text-lg font-semibold">{cert.title}</h3>
+                  <p className="text-sm text-muted-foreground py-2">
+                    {cert.description}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{cert.time}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" />
+                    <span>{cert.questions} Questions</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span>{cert.participants.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

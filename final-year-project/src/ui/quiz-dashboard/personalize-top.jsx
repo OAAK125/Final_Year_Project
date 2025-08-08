@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import {
   Dialog,
   DialogTrigger,
@@ -18,22 +20,59 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-const categories = ["AWS", "Google Cloud", "Azure", "Kubernetes", "DevOps"];
 const questionOptions = [5, 10, 15, 20, 25];
-const timeOptions = [30, 60, 90, 120];
 
 export default function PersonalizeTop() {
+  const supabase = createClient();
+  const router = useRouter();
+
+  const [certifications, setCertifications] = React.useState([]);
+  const [selectedCertification, setSelectedCertification] = React.useState("");
   const [selectedQuestions, setSelectedQuestions] = React.useState(10);
-  const [selectedTime, setSelectedTime] = React.useState(60);
-  const [includeMissed, setIncludeMissed] = React.useState("Yes");
-  const [selectedCategory, setSelectedCategory] = React.useState("AWS");
+  const [includeFlagged, setIncludeFlagged] = React.useState("Yes");
+
+  React.useEffect(() => {
+    const fetchCerts = async () => {
+      const { data, error } = await supabase
+        .from("certifications")
+        .select("id, name");
+
+      if (!error && data) {
+        setCertifications(data);
+        setSelectedCertification(data[0]?.id || "");
+      }
+    };
+
+    fetchCerts();
+  }, [supabase]);
+
+  const handleStartQuiz = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user || !selectedCertification) return;
+
+    const { data, error } = await supabase
+      .from("custom_quizzes")
+      .insert({
+        user_id: user.id,
+        certification_id: selectedCertification,
+        num_questions: selectedQuestions,
+        include_flagged: includeFlagged === "Yes",
+      })
+      .select()
+      .single();
+
+    if (!error && data) {
+      router.push(`/custom/${data.id}`);
+    }
+  };
 
   return (
     <section className="py-5 w-[90%] mx-auto text-center md:w-[90%] lg:w-[60%]">
       <div className="flex flex-col items-center text-center border border-border rounded-xl p-4 md:rounded-xl lg:p-6">
-        <h3 className="text-xl font-semibold">
-          Personalize Your Quiz Experience
-        </h3>
+        <h3 className="text-xl font-semibold">Personalize Your Quiz Experience</h3>
         <p className="text-sm my-2 text-muted-foreground py-2">
           Tailor your quiz based on your goals and preferences.
         </p>
@@ -50,20 +89,20 @@ export default function PersonalizeTop() {
             </DialogHeader>
 
             <div className="space-y-6">
-              {/* Category */}
+              {/* Certification Selection */}
               <div className="space-y-2 text-center">
                 <p>Select Certification</p>
                 <Select
-                  value={selectedCategory}
-                  onValueChange={setSelectedCategory}
+                  value={selectedCertification}
+                  onValueChange={setSelectedCertification}
                 >
-                  <SelectTrigger className="w-[40%] text-center mx-auto">
-                    <SelectValue placeholder="Choose category" />
+                  <SelectTrigger className="w-[80%] text-center mx-auto">
+                    <SelectValue placeholder="Choose a certification" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                    {certifications.map((cert) => (
+                      <SelectItem key={cert.id} value={cert.id}>
+                        {cert.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -92,34 +131,12 @@ export default function PersonalizeTop() {
                 </div>
               </div>
 
-              {/* Select Time */}
-              <div className="space-y-2 text-center">
-                <p>Select Time (seconds)</p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {timeOptions.map((t) => (
-                    <Button
-                      key={t}
-                      variant="outline"
-                      size="sm"
-                      className={cn(
-                        "w-12 px-0",
-                        selectedTime === t &&
-                          "bg-primary text-background border-primary"
-                      )}
-                      onClick={() => setSelectedTime(t)}
-                    >
-                      {t}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Include Missed Dropdown */}
+              {/* Include Flagged */}
               <div className="space-y-2 text-center">
                 <p>Include Flagged Questions?</p>
                 <Select
-                  value={includeMissed}
-                  onValueChange={setIncludeMissed}
+                  value={includeFlagged}
+                  onValueChange={setIncludeFlagged}
                 >
                   <SelectTrigger className="w-[30%] text-center mx-auto">
                     <SelectValue placeholder="Yes or No" />
@@ -133,7 +150,9 @@ export default function PersonalizeTop() {
 
               {/* Start Quiz Button */}
               <div className="text-center pt-2">
-                <Button className="w-full">Start Quiz</Button>
+                <Button className="w-full" onClick={handleStartQuiz}>
+                  Start Quiz
+                </Button>
               </div>
             </div>
           </DialogContent>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
+
 export default function Interactions() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
