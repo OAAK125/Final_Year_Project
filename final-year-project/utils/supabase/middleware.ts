@@ -66,3 +66,21 @@ export async function updateSession(request: NextRequest) {
 
   return supabaseResponse
 }
+
+/**
+ * ✅ Hook your function up as the Next.js middleware entry point.
+ * (Nothing above is removed/changed.)
+ */
+export function middleware(request: NextRequest) {
+  return updateSession(request)
+}
+
+/**
+ * ✅ Add a matcher so middleware doesn't run on static assets/images/etc.
+ * Adjust if you need other routes excluded.
+ */
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+  ],
+}
