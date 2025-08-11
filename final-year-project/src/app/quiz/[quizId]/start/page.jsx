@@ -81,15 +81,32 @@ export default function QuizQuestionPage() {
 
       if (!allQuestions?.length) return;
 
-      let selectedQuestions = [...allQuestions].sort(() => 0.5 - Math.random());
-      while (selectedQuestions.length < cert.max_questions) {
-        const additional = [...allQuestions]
-          .sort(() => 0.5 - Math.random())
-          .slice(0, cert.max_questions - selectedQuestions.length);
-        selectedQuestions = [...selectedQuestions, ...additional];
-      }
+      // --------- ONLY CHANGE: pick a random set of questions ----------
+      const randomSample = (arr, n) => {
+        const result = [];
+        const used = new Set();
+        const len = arr.length;
+        const take = Math.min(n, len);
 
-      selectedQuestions = selectedQuestions.slice(0, cert.max_questions);
+        // unique picks first
+        while (result.length < take) {
+          const idx = Math.floor(Math.random() * len);
+          if (!used.has(idx)) {
+            used.add(idx);
+            result.push(arr[idx]);
+          }
+        }
+
+        // if not enough questions in the bank, fill remainder with random repeats
+        while (result.length < n) {
+          result.push(arr[Math.floor(Math.random() * len)]);
+        }
+
+        return result;
+      };
+
+      const selectedQuestions = randomSample(allQuestions, cert.max_questions);
+      // ---------------------------------------------------------------
 
       setQuestions(selectedQuestions);
       setProgress(100 / selectedQuestions.length);
@@ -111,7 +128,7 @@ export default function QuizQuestionPage() {
   useEffect(() => {
     const checkFlagged = async () => {
       if (!user || !question) return;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("flagged_questions")
         .select("id")
         .eq("user_id", user.id)
@@ -147,17 +164,14 @@ export default function QuizQuestionPage() {
     }
   };
 
-  const handleNext = async () => {
+  // Explicit handler for "I don't know"
+  const handleDontKnow = async () => {
     if (user && question) {
-      const selectedLetter =
-        selected !== null ? question.options[selected][0] : null;
-      const isCorrect = selectedLetter === correctLetter;
-
       await supabase.from("answers").upsert({
         user_id: user.id,
         question_id: question.id,
-        selected_answer: selectedLetter,
-        is_correct: selectedLetter === null ? false : isCorrect,
+        selected_answer: null, // <- store NULL when user doesn't know
+        is_correct: false, // or set to null if your schema allows
         quiz_session_id: sessionId,
       });
     }
@@ -167,25 +181,57 @@ export default function QuizQuestionPage() {
       setSelected(null);
       setProgress(((currentQuestionIndex + 2) / totalQuestions) * 100);
     } else {
-      await handleSubmit();
+      await finalizeSession();
     }
   };
 
-  const handleSubmit = async () => {
-    if (user && question) {
-      const selectedLetter =
-        selected !== null ? question.options[selected][0] : null;
+  const handleNext = async () => {
+    if (user && question && selected !== null) {
+      const selectedLetter = question.options[selected][0];
       const isCorrect = selectedLetter === correctLetter;
 
       await supabase.from("answers").upsert({
         user_id: user.id,
         question_id: question.id,
         selected_answer: selectedLetter,
-        is_correct: selectedLetter === null ? false : isCorrect,
+        is_correct: isCorrect,
         quiz_session_id: sessionId,
       });
     }
 
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+      setSelected(null);
+      setProgress(((currentQuestionIndex + 2) / totalQuestions) * 100);
+    } else {
+      await finalizeSession();
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (selected === null) {
+      // treat as "I don't know"
+      await handleDontKnow();
+      return;
+    }
+
+    if (user && question) {
+      const selectedLetter = question.options[selected][0];
+      const isCorrect = selectedLetter === correctLetter;
+
+      await supabase.from("answers").upsert({
+        user_id: user.id,
+        question_id: question.id,
+        selected_answer: selectedLetter,
+        is_correct: isCorrect,
+        quiz_session_id: sessionId,
+      });
+    }
+
+    await finalizeSession();
+  };
+
+  const finalizeSession = async () => {
     await supabase
       .from("quiz_sessions")
       .update({ ended_at: new Date().toISOString(), completed: true })
@@ -305,7 +351,7 @@ export default function QuizQuestionPage() {
           {currentQuestionIndex === totalQuestions - 1 ? (
             <Button
               variant={selected === null ? "outline" : "default"}
-              onClick={handleSubmit}
+              onClick={selected === null ? handleDontKnow : handleSubmit}
               className="rounded-xl"
             >
               {selected === null ? "I don't know" : "Submit"}
@@ -313,7 +359,7 @@ export default function QuizQuestionPage() {
           ) : (
             <Button
               variant={selected === null ? "outline" : "default"}
-              onClick={handleNext}
+              onClick={selected === null ? handleDontKnow : handleNext}
               className="rounded-xl"
             >
               {selected === null ? "I don't know" : "Next question"}
