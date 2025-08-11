@@ -22,20 +22,44 @@ export default function CustomResultsPage() {
 
   useEffect(() => {
     const fetchResults = async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
 
-      if (!user) return router.push("/authentication/login");
+      if (!user) {
+        router.push("/authentication/login");
+        return;
+      }
 
       const userId = user.id;
 
+      // Prefer unified "profiles" table
       const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("full_name, profile_picture")
+        .from("profiles")
+        .select("full_name, avatar_url")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
+
+      // Legacy fallback if your project still has user_profiles
+      const { data: legacyProfile } = !profile
+        ? await supabase
+            .from("user_profiles")
+            .select("full_name, profile_picture")
+            .eq("id", userId)
+            .maybeSingle()
+        : { data: null };
+
+      const displayName =
+        (profile && profile.full_name) ||
+        (legacyProfile && legacyProfile.full_name) ||
+        user.user_metadata.full_name ||
+        user.user_metadata.name ||
+        "User";
+
+      const displayAvatar =
+        (profile && profile.avatar_url) ||
+        (legacyProfile && legacyProfile.profile_picture) ||
+        user.user_metadata.avatar_url ||
+        "";
 
       const { data: quizData } = await supabase
         .from("custom_quizzes")
@@ -53,8 +77,11 @@ export default function CustomResultsPage() {
         .from("questions")
         .select("id, question_text, correct_answer, explanation");
 
-      const merged = allAnswers.map((a) => {
-        const q = questions.find((q) => q.id === a.question_id);
+      const safeAnswers = allAnswers || [];
+      const safeQuestions = questions || [];
+
+      const merged = safeAnswers.map((a) => {
+        const q = safeQuestions.find((q) => q.id === a.question_id);
         return {
           question: q?.question_text,
           correctAnswer: q?.correct_answer,
@@ -65,20 +92,18 @@ export default function CustomResultsPage() {
       });
 
       const correctCount = merged.filter((a) => a.isCorrect).length;
-      const calculatedScore = Math.round(
-        (correctCount / quizData.num_questions) * 100
-      );
+      const totalQuestions = quizData?.num_questions || merged.length || 0;
+      const calculatedScore =
+        totalQuestions > 0
+          ? Math.round((correctCount / totalQuestions) * 100)
+          : 0;
 
       setScore(calculatedScore);
       setAnswers(merged);
-      setEndedAt(quizData.created_at);
+      setEndedAt(quizData?.created_at || new Date().toISOString());
       setUserData({
-        name:
-          profile?.full_name ||
-          user.user_metadata.full_name ||
-          user.user_metadata.name ||
-          "User",
-        avatar: profile?.profile_picture || user.user_metadata.avatar_url || "",
+        name: displayName,
+        avatar: displayAvatar,
       });
 
       setLoading(false);
@@ -99,7 +124,6 @@ export default function CustomResultsPage() {
     <section className="py-10 px-10">
       <div className="relative">
         <div className="container max-w-5xl mx-auto flex flex-col items-center text-center space-y-4 p-4">
-          {/* Cancel / Back Button */}
           <div className="w-full flex justify-start">
             <Button
               variant="ghost"
@@ -110,7 +134,6 @@ export default function CustomResultsPage() {
             </Button>
           </div>
 
-          {/* Title & Score */}
           <h1 className="text-4xl font-semibold md:text-5xl">
             Assessment Report
           </h1>
@@ -118,17 +141,16 @@ export default function CustomResultsPage() {
             You scored {score}% on your custom quiz.
           </h3>
 
-          {/* User Info */}
           {userData && (
             <div className="flex items-center gap-3 text-sm md:text-base">
               <Avatar className="h-8 w-8 border">
                 <AvatarImage src={userData.avatar} />
                 <AvatarFallback>
-                  {userData.name
+                  {(userData.name || "U")
                     .split(" ")
-                    .map((n) => n[0])
+                    .map((n) => (n && n[0]) || "")
                     .join("")
-                    .toUpperCase()}
+                    .toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               <span>

@@ -53,10 +53,20 @@ export function NavUser() {
         return;
       }
 
-      const name =
-        user.user_metadata.full_name || user.user_metadata.name || "User";
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
 
-      const avatar = user.user_metadata.avatar_url || "";
+      const name =
+        (profile && profile.full_name) ||
+        user.user_metadata.full_name ||
+        "User";
+
+      const avatar =
+        (profile && profile.avatar_url) || user.user_metadata.avatar_url || "";
+
       const email = user.email || "";
 
       setUserData({ name, avatar, email });

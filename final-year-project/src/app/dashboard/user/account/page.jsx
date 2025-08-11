@@ -37,29 +37,56 @@ export default function AccountPage() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: authData } = await supabase.auth.getUser();
+      const authedUser = authData?.user;
+      if (!authedUser) return;
 
-      const fullName = user.user_metadata.full_name || "User";
-      const avatar = user.user_metadata.avatar_url || "";
-      const email = user.email;
+      // Profiles is the source of truth for name/avatar/summary
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url, summary")
+        .eq("id", authedUser.id)
+        .maybeSingle();
 
-      setUser({ id: user.id, name: fullName, avatar, email });
+      const fullName =
+        (profile && profile.full_name) ||
+        authedUser.user_metadata.full_name ||
+        "User";
+
+      const avatar =
+        (profile && profile.avatar_url) ||
+        authedUser.user_metadata.avatar_url ||
+        "";
+
+      setUser({
+        id: authedUser.id,
+        name: fullName,
+        avatar,
+        email: authedUser.email,
+      });
       setAvatarUrl(avatar);
       setName(fullName);
-      setJoinedAt(new Date(user.created_at).toLocaleDateString());
+      setJoinedAt(new Date(authedUser.created_at).toLocaleDateString());
+      setSummary((profile && profile.summary) || "");
 
+      // Seed a profiles row if it doesn't exist yet
+      if (!profile) {
+        await supabase.from("profiles").upsert({
+          id: authedUser.id,
+          full_name: fullName,
+          avatar_url: avatar,
+          summary: "",
+        });
+      }
+
+      // Fetch sessions for activity and certifications
       const { data: sessions } = await supabase
         .from("quiz_sessions")
         .select("ended_at, started_at, certification_id")
-        .eq("user_id", user.id)
+        .eq("user_id", authedUser.id)
         .eq("completed", true);
 
-      const certIds = [
-        ...new Set((sessions || []).map((s) => s.certification_id)),
-      ];
+      const certIds = [...new Set((sessions || []).map((s) => s.certification_id))];
 
       let totalMinutes = 0;
       const certs = [];
@@ -98,13 +125,6 @@ export default function AccountPage() {
       setCertifications(certs);
       setActivity({ certifications: certs.length, hours: totalMinutes });
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("summary")
-        .eq("id", user.id)
-        .single();
-
-      setSummary(profile?.summary || "");
       setLoading(false);
     };
 
@@ -115,16 +135,19 @@ export default function AccountPage() {
     setIsSaving(true);
     setSuccess(false);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: authData } = await supabase.auth.getUser();
+    const authedUser = authData?.user;
+    if (!authedUser) return;
 
+    // Save to profiles (source of truth)
     await supabase.from("profiles").upsert({
-      id: user.id,
+      id: authedUser.id,
+      full_name: name,
+      avatar_url: avatarUrl,
       summary,
     });
 
+    // Optional: mirror to auth metadata (don’t rely on it for reads)
     await supabase.auth.updateUser({
       data: { full_name: name, avatar_url: avatarUrl },
     });
@@ -134,12 +157,11 @@ export default function AccountPage() {
     setSuccess(true);
     setIsSaving(false);
 
-    // hide success after a short delay
     setTimeout(() => setSuccess(false), 2000);
   };
 
   const handleAvatarUpload = async (event) => {
-    const file = event.target.files[0];
+    const file = event.target.files && event.target.files[0];
     if (!file) return;
 
     const fileExt = file.name.split(".").pop();
@@ -156,8 +178,20 @@ export default function AccountPage() {
     }
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    setAvatarUrl(data.publicUrl);
+    const publicUrl = data.publicUrl;
+    setAvatarUrl(publicUrl);
 
+    const { data: authData } = await supabase.auth.getUser();
+    const authedUser = authData?.user;
+    if (!authedUser) return;
+
+    // Save avatar to profiles (source of truth)
+    await supabase.from("profiles").upsert({
+      id: authedUser.id,
+      avatar_url: publicUrl,
+    });
+
+    // Optional: mirror to auth metadata
     const { error: updateError } = await supabase.auth.updateUser({
       data: { avatar_url: publicUrl },
     });
@@ -170,28 +204,26 @@ export default function AccountPage() {
   };
 
   const handleDeleteAccount = async () => {
-    setShowDialog(false); // close dialog
-    setIsDeleting(true); // show loading screen
+    setShowDialog(false);
+    setIsDeleting(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: authData } = await supabase.auth.getUser();
+      const authedUser = authData?.user;
 
-      if (!user) {
+      if (!authedUser) {
         setIsDeleting(false);
         return;
       }
 
-      // Call secure server-side route to delete all data + auth user
       const res = await fetch("/api/delete-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({ userId: authedUser.id }),
       });
 
       if (!res.ok) {
-        const txt = await res.text(); // Grab the raw response in case it's not JSON
+        const txt = await res.text();
         console.error("Failed to delete account", {
           status: res.status,
           body: txt,
@@ -200,10 +232,8 @@ export default function AccountPage() {
         return;
       }
 
-      // Sign out locally and redirect to landing page
       await supabase.auth.signOut();
-      // This works for both localhost and your deployed Vercel site
-      window.location.href = "/"; // or: router.push("/")
+      window.location.href = "/";
     } catch (e) {
       console.error(e);
       setIsDeleting(false);
@@ -236,7 +266,7 @@ export default function AccountPage() {
                   size="icon"
                   variant="outline"
                   className="absolute bottom-0 right-0 rounded-full"
-                  onClick={() => fileInputRef.current.click()}
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
                 >
                   <UploadCloud className="w-4 h-4" />
                 </Button>
