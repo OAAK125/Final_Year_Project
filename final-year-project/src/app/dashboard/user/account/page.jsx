@@ -23,7 +23,7 @@ export default function AccountPage() {
 
   const [user, setUser] = useState(null);
   const [summary, setSummary] = useState("");
-  const [activity, setActivity] = useState({ certifications: 0, hours: 0 });
+  const [activity, setActivity] = useState({ certifications: 0, minutes: 0 });
   const [joinedAt, setJoinedAt] = useState("");
   const [certifications, setCertifications] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -86,7 +86,9 @@ export default function AccountPage() {
         .eq("user_id", authedUser.id)
         .eq("completed", true);
 
-      const certIds = [...new Set((sessions || []).map((s) => s.certification_id))];
+      const certIds = [
+        ...new Set((sessions || []).map((s) => s.certification_id)),
+      ];
 
       let totalMinutes = 0;
       const certs = [];
@@ -123,7 +125,10 @@ export default function AccountPage() {
       }
 
       setCertifications(certs);
-      setActivity({ certifications: certs.length, hours: totalMinutes });
+      setActivity({
+        certifications: (sessions ?? []).length,
+        minutes: totalMinutes,
+      });
 
       setLoading(false);
     };
@@ -266,7 +271,9 @@ export default function AccountPage() {
                   size="icon"
                   variant="outline"
                   className="absolute bottom-0 right-0 rounded-full"
-                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  onClick={() =>
+                    fileInputRef.current && fileInputRef.current.click()
+                  }
                 >
                   <UploadCloud className="w-4 h-4" />
                 </Button>
@@ -385,7 +392,7 @@ export default function AccountPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>{activity.hours} Minutes Spent</span>
+                <span>{activity.minutes} Minutes Spent</span>
               </div>
             </div>
 
