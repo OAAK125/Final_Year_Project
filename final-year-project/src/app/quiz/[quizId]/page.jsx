@@ -25,7 +25,7 @@ export default function QuizInfoPage() {
   const [error, setError] = useState(null);
 
   const searchParams = useSearchParams();
-  const from = searchParams.get("from"); // Get `from` param from URL
+  const from = searchParams.get("from"); 
 
   useEffect(() => {
     async function fetchQuiz() {
@@ -104,13 +104,12 @@ export default function QuizInfoPage() {
       return;
     }
 
-    // Go to the quiz start page
     router.push(`/quiz/${quizId}/start?session_id=${sessionData.id}&from=${from || "/dashboard/practice"}`);
 
   };
 
   const handleClose = () => {
-  router.push(from || "/dashboard/practice"); // fallback to practice if no from
+  router.push(from || "/dashboard/practice"); 
 };
 
 

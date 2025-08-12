@@ -13,7 +13,6 @@ import dynamic from "next/dynamic";
 
 const UserProgressLineChart = dynamic(() => import("@/ui/quiz-dashboard/line-chart"));
 
-// Bar chart remains unchanged
 const SubTopicPerformanceChart = dynamic(
   () => import("@/ui/quiz-dashboard/bar-chart"),
   { ssr: false }

@@ -28,7 +28,7 @@ const HomeTop = ({ heading = "Retake Last Test" }) => {
 
   const [feature, setFeature] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [hasChartData, setHasChartData] = useState(true); // ✅ added state here
+  const [hasChartData, setHasChartData] = useState(true); 
 
   useEffect(() => {
     const fetchLatestTest = async () => {

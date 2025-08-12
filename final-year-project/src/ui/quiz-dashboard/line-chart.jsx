@@ -82,7 +82,6 @@ export default function UserProgressLineChart({ onDataStatusChange }) {
     }
   }, [chartData, onDataStatusChange]);
 
-  // Handle loading and empty data states
   if (loading || chartData.length === 0) {
     return (
       <div className="h-[250px] flex flex-col items-center justify-center text-muted-foreground text-sm text-center">

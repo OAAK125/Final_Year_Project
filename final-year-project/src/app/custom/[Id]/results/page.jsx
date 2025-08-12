@@ -32,14 +32,12 @@ export default function CustomResultsPage() {
 
       const userId = user.id;
 
-      // Prefer unified "profiles" table
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name, avatar_url")
         .eq("id", userId)
         .maybeSingle();
 
-      // Legacy fallback if your project still has user_profiles
       const { data: legacyProfile } = !profile
         ? await supabase
             .from("user_profiles")

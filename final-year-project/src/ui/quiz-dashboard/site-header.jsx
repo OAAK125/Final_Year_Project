@@ -100,12 +100,11 @@ export function SiteHeader() {
     );
     setUnreadCount((prev) => Math.max(prev - 1, 0));
 
-    // Add `from=notifications`
+
     router.push(`/quiz/${certId}?from=/dashboard`);
   };
 
   const handleSearchClick = (certId) => {
-    // Add `from=search`
     router.push(`/quiz/${certId}?from=/dashboard`);
     setSearch("");
     setResults([]);

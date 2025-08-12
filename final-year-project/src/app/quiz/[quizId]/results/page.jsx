@@ -47,14 +47,12 @@ const QuizResultsPage = () => {
         return;
       }
 
-      // Preferred: profiles table
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name, avatar_url")
         .eq("id", userId)
         .maybeSingle();
 
-      // Legacy fallback: user_profiles table (if your project still has this)
       const { data: legacyProfile } = !profile
         ? await supabase
             .from("user_profiles")

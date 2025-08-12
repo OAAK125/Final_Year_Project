@@ -41,7 +41,6 @@ export default function AccountPage() {
       const authedUser = authData?.user;
       if (!authedUser) return;
 
-      // Profiles is the source of truth for name/avatar/summary
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name, avatar_url, summary")
@@ -69,7 +68,6 @@ export default function AccountPage() {
       setJoinedAt(new Date(authedUser.created_at).toLocaleDateString());
       setSummary((profile && profile.summary) || "");
 
-      // Seed a profiles row if it doesn't exist yet
       if (!profile) {
         await supabase.from("profiles").upsert({
           id: authedUser.id,
@@ -79,7 +77,6 @@ export default function AccountPage() {
         });
       }
 
-      // Fetch sessions for activity and certifications
       const { data: sessions } = await supabase
         .from("quiz_sessions")
         .select("ended_at, started_at, certification_id")
@@ -144,7 +141,6 @@ export default function AccountPage() {
     const authedUser = authData?.user;
     if (!authedUser) return;
 
-    // Save to profiles (source of truth)
     await supabase.from("profiles").upsert({
       id: authedUser.id,
       full_name: name,
@@ -152,7 +148,6 @@ export default function AccountPage() {
       summary,
     });
 
-    // Optional: mirror to auth metadata (don’t rely on it for reads)
     await supabase.auth.updateUser({
       data: { full_name: name, avatar_url: avatarUrl },
     });
@@ -190,13 +185,11 @@ export default function AccountPage() {
     const authedUser = authData?.user;
     if (!authedUser) return;
 
-    // Save avatar to profiles (source of truth)
     await supabase.from("profiles").upsert({
       id: authedUser.id,
       avatar_url: publicUrl,
     });
 
-    // Optional: mirror to auth metadata
     const { error: updateError } = await supabase.auth.updateUser({
       data: { avatar_url: publicUrl },
     });

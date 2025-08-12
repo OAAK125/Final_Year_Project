@@ -9,12 +9,10 @@ import { Loader2 } from "lucide-react";
 
 const PersonalizedPage = () => {
   const [isLoading, setIsLoading] = useState(true);
-
-  // Simulate loading delay or wait for child data load
   useEffect(() => {
     const loadTimeout = setTimeout(() => {
       setIsLoading(false);
-    }, 1000); // Simulate 1s load — replace with real check if needed
+    }, 1000); 
 
     return () => clearTimeout(loadTimeout);
   }, []);
