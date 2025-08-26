@@ -10,7 +10,7 @@ const links = [
 
 export default function FooterSection() {
   return (
-    <footer className="bg-zinc-50 py-16 md:py-32">
+    <footer className="bg-white py-16 md:py-32">
       <div className="mx-auto max-w-5xl px-6">
         {/* Logo */}
         <Link
