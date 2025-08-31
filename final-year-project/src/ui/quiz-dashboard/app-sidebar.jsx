@@ -26,6 +26,8 @@ import {
   BiSlider,
   BiBookmark,
   BiSolidBookmark,
+  BiBookAlt,
+  BiSolidBookAlt,
 } from "react-icons/bi"
 
 const user = {
@@ -51,6 +53,12 @@ const quizMenu = [
     solidIcon: BiSolidSpreadsheet,
   },
   {
+    name: "Resorces",
+    href: "/dashboard/practice",
+    icon: BiBookAlt ,
+    solidIcon: BiSolidBookAlt,
+  },
+  {
     name: "Personalized Insights",
     href: "/dashboard/personalized",
     icon: BiSlider,
@@ -63,21 +71,6 @@ const quizMenu = [
     solidIcon: BiSolidBookmark,
   },
 
-]
-
-const forumMenu = [
-  {
-    name: "Interactions",
-    href: "/dashboard/interactions",
-    icon: BiBookmark,
-  },
-
-  {
-    name: "ForumThreads",
-    href: "/dashboard/forumthreads",
-    icon: BiSlider,
-    solidIcon: BiSlider,
-  },
 ]
 
 function NavGroup({ label, items }) {
@@ -147,10 +140,6 @@ export function AppSidebar({ ...props }) {
 
         <div className="mt-3">
           <NavGroup label="Quiz" items={quizMenu} />
-        </div>
-
-        <div className="mt-6">
-          <NavGroup label="Forum" items={forumMenu} />
         </div>
       </SidebarContent>
 

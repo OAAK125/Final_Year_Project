@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-import { NavUser } from "@/ui/quiz-dashboard/nav-user"
+import { NavUser } from "@/ui/admin-dashboard/nav-user"
 
 // Icons
 import {
@@ -131,7 +131,7 @@ export function AppSidebar({ ...props }) {
       </SidebarHeader>
 
       <SidebarContent>
-        <div className="mt-3">
+        <div className="mt-5">
           <NavGroup label="Admin Dashboard" items={adminMenu} />
         </div>
       </SidebarContent>

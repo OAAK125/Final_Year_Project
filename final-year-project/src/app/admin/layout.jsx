@@ -1,5 +1,5 @@
 import { AppSidebar } from "@/ui/admin-dashboard/app-sidebar";
-import { SiteHeader } from "@/ui/quiz-dashboard/site-header";
+import { SiteHeader } from "@/ui/admin-dashboard/site-header";
 import {
   SidebarInset,
   SidebarProvider,
