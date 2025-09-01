@@ -1,10 +1,8 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ 
-    request,
-  })
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,57 +10,56 @@ export async function updateSession(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
-          )
+          );
         },
       },
     }
-  )
-
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  // IMPORTANT: DO NOT REMOVE auth.getUser()
+  );
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.includes('/authentication/login') &&
-    !request.nextUrl.pathname.includes('/authentication/signup') &&
-    !request.nextUrl.pathname.includes('/authentication/forgot-passowrd') &&
-    !request.nextUrl.pathname.includes('/authentication/reset-password') &&
-    !request.nextUrl.pathname.includes('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/authentication/login'
-    return NextResponse.redirect(url)
+  if (!user) {
+    const publicPaths = [
+      "/authentication/login",
+      "/authentication/signup",
+      "/authentication/forgot-password",
+      "/authentication/reset-password",
+    ];
+    if (!publicPaths.some((path) => request.nextUrl.pathname.startsWith(path))) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/authentication/login";
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  // ✅ Fetch profile and enforce role-based access
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
 
-  return supabaseResponse
+  if (profile) {
+    if (request.nextUrl.pathname.startsWith("/admin") && profile.role !== "admin") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    if (request.nextUrl.pathname.startsWith("/contributor") && profile.role !== "contributor") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+  }
+
+  return supabaseResponse;
 }
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};

@@ -19,6 +19,7 @@ export default function AuthenticationLoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // ✅ Email/password login
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -33,7 +34,6 @@ export default function AuthenticationLoginPage() {
       email,
       password,
     });
-
     setLoading(false);
 
     if (loginError) {
@@ -45,20 +45,41 @@ export default function AuthenticationLoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    if (data?.user) {
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        setError("Failed to fetch user profile.");
+        return;
+      }
+
+      switch (profile.role) {
+        case "admin":
+          router.push("/admin");
+          break;
+        case "contributor":
+          router.push("/contributor");
+          break;
+        default:
+          router.push("/dashboard");
+      }
+    }
   };
 
+  // ✅ OAuth login (redirects to /auth/callback)
   const handleOAuthLogin = async (provider) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
-    if (error) {
-      setError(error.message);
-    }
+    if (error) setError(error.message);
   };
 
   return (
@@ -90,12 +111,7 @@ export default function AuthenticationLoginPage() {
             className="flex items-center justify-center gap-2"
             onClick={() => handleOAuthLogin("google")}
           >
-            <Image
-              src="/assets/authentication/google.svg"
-              alt="Google logo"
-              width={20}
-              height={20}
-            />
+            <Image src="/assets/authentication/google.svg" alt="Google logo" width={20} height={20} />
           </Button>
 
           <Button
@@ -104,12 +120,7 @@ export default function AuthenticationLoginPage() {
             className="flex items-center justify-center gap-2"
             onClick={() => handleOAuthLogin("github")}
           >
-            <Image
-              src="/assets/authentication/github.svg"
-              alt="Github logo"
-              width={20}
-              height={20}
-            />
+            <Image src="/assets/authentication/github.svg" alt="Github logo" width={20} height={20} />
           </Button>
         </div>
 
@@ -123,11 +134,11 @@ export default function AuthenticationLoginPage() {
             <Input
               id="email"
               type="email"
-              name="email"
               autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
           </div>
 
@@ -146,14 +157,15 @@ export default function AuthenticationLoginPage() {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              name="password"
               autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
             />
             <button
               type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute right-3 top-[38px] text-muted-foreground hover:cursor-pointer hover:text-primary"
               onClick={() => setShowPassword((prev) => !prev)}
             >
@@ -171,10 +183,7 @@ export default function AuthenticationLoginPage() {
         <div className="mt-6 rounded-md border bg-muted p-4 text-center">
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link
-              href="/authentication/signup"
-              className="font-medium text-primary hover:underline"
-            >
+            <Link href="/authentication/signup" className="font-medium text-primary hover:underline">
               Create account
             </Link>
           </p>
@@ -183,4 +192,3 @@ export default function AuthenticationLoginPage() {
     </section>
   );
 }
-
