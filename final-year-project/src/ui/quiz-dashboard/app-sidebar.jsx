@@ -53,7 +53,7 @@ const quizMenu = [
     solidIcon: BiSolidSpreadsheet,
   },
   {
-    name: "Resorces",
+    name: "Resources",
     href: "/dashboard/resource",
     icon: BiBookAlt ,
     solidIcon: BiSolidBookAlt,

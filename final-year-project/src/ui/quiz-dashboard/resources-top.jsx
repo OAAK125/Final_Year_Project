@@ -1,17 +1,65 @@
 "use client";
 
-const ResourcesTopPage = ({ objectives }) => {
+import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
+
+export default function ResourcesPage() {
+  const supabase = createClient();
+
+  const [certifications, setCertifications] = useState([]);
+  const [objectives, setObjectives] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+
+      const [{ data: certData, error: certError }, { data: objData, error: objError }] = await Promise.all([
+        supabase.from("certifications").select("id, name"),
+        supabase.from("official_exam_objectives").select("*"),
+      ]);
+
+      if (certError) console.error("Error fetching certifications:", certError);
+      if (objError) console.error("Error fetching objectives:", objError);
+
+      setCertifications(certData || []);
+
+      // Transform objectives for UI
+      const transformed = (objData || []).map((obj) => ({
+        id: obj.id,
+        title: obj.objective_title,
+        description: obj.short_description || "No description provided.",
+        certificationName:
+          certData?.find((c) => c.id === obj.certification_id)?.name || "Unknown",
+        image: obj.image_url || "/assets/default-objective.png",
+        target_url: obj.target_url, 
+      }));
+
+      setObjectives(transformed);
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
+  return <ResourcesTopPage objectives={objectives} />;
+}
+
+function ResourcesTopPage({ objectives }) {
   return (
     <section className="p-5 space-y-6">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-semibold">Official Exam Objectives</h2>
-        <a
-          href="/dashboard/practice"
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          View All
-        </a>
+        {objectives.length > 0 && (
+          <a
+          className="text-sm text-muted-foreground hover:underline hover:text-primary"
+            href={"/dashboard/resource/objectives"}
+          >
+            View All
+          </a>
+        )}
       </div>
+
       <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
         {objectives.slice(0, 3).map((obj) => (
           <a
@@ -49,6 +97,4 @@ const ResourcesTopPage = ({ objectives }) => {
       </div>
     </section>
   );
-};
-
-export default ResourcesTopPage;
+}
