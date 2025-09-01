@@ -16,61 +16,58 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-import { NavUser } from "@/ui/quiz-dashboard/nav-user"
+import { NavUser } from "@/ui/admin-dashboard/nav-user"
 
+// Icons
 import {
-  BiHome,
-  BiSolidHome,
+  BiSolidCertification,
   BiSpreadsheet,
   BiSolidSpreadsheet,
-  BiSlider,
-  BiBookmark,
-  BiSolidBookmark,
-  BiBookAlt,
-  BiSolidBookAlt,
+  BiHelpCircle,
+  BiSolidHelpCircle,
+  BiUser,
+  BiSolidUser,
+  BiGroup,
+  BiSolidGroup,
 } from "react-icons/bi"
 
 const user = {
-  name: "shadcn",
-  email: "m@example.com",
-  avatar: "/avatars/shadcn.jpg",
+  name: "Admin User",
+  email: "admin@example.com",
+  avatar: "/avatars/admin.jpg",
 }
 
-const navMain = [
+const adminMenu = [
   {
-    name: "Home",
-    href: "/dashboard",
-    icon: BiHome,
-    solidIcon: BiSolidHome,
+    name: "Manage Certifications",
+    href: "/admin/certifications",
+    icon: BiSolidCertification,
+    solidIcon: BiSolidCertification,
   },
-]
-
-const quizMenu = [
   {
-    name: "Practice Tests",
-    href: "/dashboard/practice",
+    name: "Quiz Generator",
+    href: "/admin/quiz-generator",
     icon: BiSpreadsheet,
     solidIcon: BiSolidSpreadsheet,
   },
   {
-    name: "Resorces",
-    href: "/dashboard/resource",
-    icon: BiBookAlt ,
-    solidIcon: BiSolidBookAlt,
+    name: "Quiz Questions",
+    href: "/admin/questions",
+    icon: BiHelpCircle,
+    solidIcon: BiSolidHelpCircle,
   },
   {
-    name: "Personalized Insights",
-    href: "/dashboard/personalized",
-    icon: BiSlider,
-    solidIcon: null,
+    name: "Manage Users",
+    href: "/admin/users",
+    icon: BiUser,
+    solidIcon: BiSolidUser,
   },
   {
-    name: "Bookmarks",
-    href: "/dashboard/bookmark",
-    icon: BiBookmark,
-    solidIcon: BiSolidBookmark,
+    name: "Manage Contributors",
+    href: "/admin/contributors",
+    icon: BiGroup,
+    solidIcon: BiSolidGroup,
   },
-
 ]
 
 function NavGroup({ label, items }) {
@@ -126,7 +123,7 @@ export function AppSidebar({ ...props }) {
                   className="shrink-0"
                   priority
                 />
-                <span className="text-base font-semibold">CertifyPrep</span>
+                <span className="text-base font-semibold">CertifyPrep Admin</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -134,12 +131,8 @@ export function AppSidebar({ ...props }) {
       </SidebarHeader>
 
       <SidebarContent>
-        <div className="mt-3">
-          <NavGroup label="" items={navMain} />
-        </div>
-
-        <div className="mt-3">
-          <NavGroup label="Quiz" items={quizMenu} />
+        <div className="mt-5">
+          <NavGroup label="Admin Dashboard" items={adminMenu} />
         </div>
       </SidebarContent>
 

@@ -1,11 +1,8 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   BookOpenText,
-  FileJson,
-  Search,
-  Settings2,
+  BrainCircuit,
   Timer,
-  Users,
 } from "lucide-react";
 
 export default function Features() {
@@ -44,14 +41,14 @@ export default function Features() {
           <Card className="text-center">
             <CardHeader className="pb-3">
               <CardDecorator>
-                <Settings2 className="w-6 h-6" aria-hidden />
+                <BrainCircuit className="w-6 h-6" aria-hidden />
               </CardDecorator>
-              <h3 className="mt-6 font-medium">Adaptive Learning Paths</h3>
+              <h3 className="mt-6 font-medium">Expert-Reviewed Questions</h3>
             </CardHeader>
             <CardContent>
               <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
-                Our quizzes adjust to your progress, focusing on your weak areas
-                and ensuring efficient study.
+                Every question is carefully reviewed by certified professionals
+                to ensure accuracy, relevance, and up-to-date exam coverage.
               </p>
             </CardContent>
           </Card>
@@ -67,51 +64,6 @@ export default function Features() {
               <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
                 Access thousands of high-quality questions across various
                 certifications, topics, and difficulty levels.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardHeader className="pb-3">
-              <CardDecorator>
-                <Users className="w-6 h-6" aria-hidden />
-              </CardDecorator>
-              <h3 className="mt-6 font-medium">Vibrant Community Forum</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
-                Connect with peers, ask questions, share insights, and get
-                support from a thriving tech community.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardHeader className="pb-3">
-              <CardDecorator>
-                <FileJson className="w-6 h-6" aria-hidden />
-              </CardDecorator>
-              <h3 className="mt-6 font-medium">Rich Media Sharing</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
-                Easily upload images, videos, and code snippets within forum
-                discussions to enhance collaboration.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardHeader className="pb-3">
-              <CardDecorator>
-                <Search className="w-6 h-6" aria-hidden />
-              </CardDecorator>
-              <h3 className="mt-6 font-medium">Advanced Search & Tagging</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
-                Quickly find the exact quizzes or forum discussions you need
-                with powerful search and intelligent tagging.
               </p>
             </CardContent>
           </Card>

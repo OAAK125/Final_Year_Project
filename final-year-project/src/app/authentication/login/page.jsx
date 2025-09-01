@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 export default function AuthenticationLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [email, setEmail] = useState("");
@@ -45,14 +46,47 @@ export default function AuthenticationLoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    if (data?.user) {
+      // 🔎 fetch role from profiles
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching profile role:", profileError);
+        router.push("/dashboard"); // fallback
+        return;
+      }
+
+      console.log("🔐 Logged in user role:", profile?.role);
+
+      // if there was a redirect param (middleware set it)
+      const redirectTo = searchParams.get("redirect");
+      if (redirectTo) {
+        router.push(redirectTo);
+        return;
+      }
+
+      // role-based redirect
+      if (profile?.role === "admin") {
+        router.push("/admin");
+      } else if (profile?.role === "contributor") {
+        router.push("/contributor");
+      } else if (profile?.role === "student") {
+        router.push("/"); // landing page
+      } else {
+        router.push("/dashboard"); // fallback
+      }
+    }
   };
 
   const handleOAuthLogin = async (provider) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/auth/callback`, // safe callback
       },
     });
 

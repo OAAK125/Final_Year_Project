@@ -1,4 +1,3 @@
-import Categories from "@/ui/landing-page/categories";
 import ContactUs from "@/ui/landing-page/contact-us";
 import CallToAction from "@/ui/landing-page/cta";
 import FAQ from "@/ui/landing-page/faq";
@@ -6,6 +5,7 @@ import Features from "@/ui/landing-page/features";
 import FooterSection from "@/ui/landing-page/footer";
 import HeroSection from "@/ui/landing-page/hero-section";
 import TestimonialsSection from "@/ui/landing-page/testimonals";
+import Pricing from "@/ui/landing-page/pricing";
 
 
 
@@ -16,7 +16,7 @@ export default function Home() {
     <HeroSection />
     <Features />
     <TestimonialsSection />
-    <Categories />
+    <Pricing />
     <FAQ />
     <ContactUs />
     <CallToAction />
