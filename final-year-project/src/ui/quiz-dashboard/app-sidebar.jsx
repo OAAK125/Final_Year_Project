@@ -54,7 +54,7 @@ const quizMenu = [
   },
   {
     name: "Resorces",
-    href: "/dashboard/practice",
+    href: "/dashboard/resource",
     icon: BiBookAlt ,
     solidIcon: BiSolidBookAlt,
   },
