@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
-export default function ResourcesPage() {
+export default function ResourceAObj() {
   const supabase = createClient();
 
   const [certifications, setCertifications] = useState([]);
@@ -14,17 +14,17 @@ export default function ResourcesPage() {
     const fetchData = async () => {
       setIsLoading(true);
 
-      const [{ data: certData, error: certError }, { data: objData, error: objError }] = await Promise.all([
-        supabase.from("certifications").select("id, name"),
-        supabase.from("official_exam_objectives").select("*"),
-      ]);
+      const [{ data: certData, error: certError }, { data: objData, error: objError }] =
+        await Promise.all([
+          supabase.from("certifications").select("id, name"),
+          supabase.from("official_exam_objectives").select("*"),
+        ]);
 
       if (certError) console.error("Error fetching certifications:", certError);
       if (objError) console.error("Error fetching objectives:", objError);
 
       setCertifications(certData || []);
 
-      // Transform objectives for UI
       const transformed = (objData || []).map((obj) => ({
         id: obj.id,
         title: obj.objective_title,
@@ -32,7 +32,7 @@ export default function ResourcesPage() {
         certificationName:
           certData?.find((c) => c.id === obj.certification_id)?.name || "Unknown",
         image: obj.image_url || "/assets/default-objective.png",
-        target_url: obj.target_url, 
+        target_url: obj.target_url,
       }));
 
       setObjectives(transformed);
@@ -42,17 +42,13 @@ export default function ResourcesPage() {
     fetchData();
   }, []);
 
-  return <ResourcesTopPage objectives={objectives} />;
-}
-
-function ResourcesTopPage({ objectives }) {
   return (
     <section className="p-5 space-y-6">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-semibold">Official Exam Objectives</h2>
         {objectives.length > 0 && (
           <a
-          className="text-sm text-muted-foreground hover:underline hover:text-primary"
+            className="text-sm text-muted-foreground hover:underline hover:text-primary"
             href={"/dashboard/resource/objectives"}
           >
             View All

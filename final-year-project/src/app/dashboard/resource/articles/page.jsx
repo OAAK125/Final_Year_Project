@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
-export default function ResourceArticles() {
+export default function ArticlePage() {
   const supabase = createClient();
 
-  const [certifications, setCertifications] = useState([]);
   const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -23,7 +22,6 @@ export default function ResourceArticles() {
       if (certError) console.error("Error fetching certifications:", certError);
       if (artError) console.error("Error fetching articles:", artError);
 
-      setCertifications(certData || []);
       const transformed = (artData || []).map((article) => ({
         id: article.id,
         title: article.title,
@@ -45,22 +43,18 @@ export default function ResourceArticles() {
     fetchData();
   }, []);
 
+  return <ArticlesTopPage articles={articles} />;
+}
+
+function ArticlesTopPage({ articles }) {
   return (
     <section className="p-5 space-y-6">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-semibold">Articles</h2>
-        {articles.length > 0 && (
-          <a
-            className="text-sm text-muted-foreground hover:underline hover:text-primary"
-            href={"/dashboard/resource/articles"}
-          >
-            View All
-          </a>
-        )}
       </div>
 
       <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
-        {articles.slice(0, 3).map((article) => (
+        {articles.map((article) => (
           <a
             key={article.id}
             href={article.target_url || "#"}
@@ -78,13 +72,13 @@ export default function ResourceArticles() {
 
             <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase">
                   Article
                 </p>
                 <h3 className="text-lg font-semibold">{article.title}</h3>
-                <div className="text-sm text-muted-foreground py-2">
+                <p className="text-sm text-muted-foreground py-2">
                   {article.description}
-                </div>
+                </p>
                 <div className="text-xs text-muted-foreground pt-2 font-style: italic font-semibold">
                   {article.author} • {article.date}
                 </div>
