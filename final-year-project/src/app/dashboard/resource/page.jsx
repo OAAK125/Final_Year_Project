@@ -6,6 +6,8 @@ import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import ResourcesArticlesPage from "@/ui/quiz-dashboard/resources-articles";
 import ResourcesObjPage from "@/ui/quiz-dashboard/resources-obj";
+import ResourceVideo from "@/ui/quiz-dashboard/resources-video";
+import ResourceGuide from "@/ui/quiz-dashboard/resources-guide";
 
 export default function ResourcesPage() {
   const supabase = createClient();
@@ -66,6 +68,8 @@ export default function ResourcesPage() {
         <>
           <ResourcesObjPage objectives={objectives} />
           <ResourcesArticlesPage />
+          <ResourceVideo />
+          <ResourceGuide />
         </>
       )}
     </section>

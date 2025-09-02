@@ -43,10 +43,10 @@ export default function ArticlePage() {
     fetchData();
   }, []);
 
-  return <ArticlesTopPage articles={articles} />;
+  return <ArticlesPage articles={articles} />;
 }
 
-function ArticlesTopPage({ articles }) {
+function ArticlesPage({ articles }) {
   return (
     <section className="p-5 space-y-6">
       <div className="flex items-center justify-between mb-5">

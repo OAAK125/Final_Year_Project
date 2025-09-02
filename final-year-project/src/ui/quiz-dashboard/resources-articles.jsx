@@ -85,9 +85,9 @@ export default function ResourceArticles() {
                 <div className="text-sm text-muted-foreground py-2">
                   {article.description}
                 </div>
-                <div className="text-xs text-muted-foreground pt-2 font-style: italic font-semibold">
+                <p className="pt-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   {article.author} • {article.date}
-                </div>
+                </p>
               </div>
 
               <div className="text-sm text-muted-foreground pt-2 font-bold">

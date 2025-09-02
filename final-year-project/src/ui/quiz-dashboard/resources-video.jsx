@@ -3,39 +3,41 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
-export default function ResourcesObjPage() {
+export default function ResourceVideo() {
   const supabase = createClient();
 
   const [certifications, setCertifications] = useState([]);
-  const [objectives, setObjectives] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
 
-      const [{ data: certData, error: certError }, { data: objData, error: objError }] =
+      const [{ data: certData, error: certError }, { data: vidData, error: vidError }] =
         await Promise.all([
           supabase.from("certifications").select("id, name"),
-          supabase.from("official_exam_objectives").select("*"),
+          supabase.from("video_courses").select("*"),
         ]);
 
       if (certError) console.error("Error fetching certifications:", certError);
-      if (objError) console.error("Error fetching objectives:", objError);
+      if (vidError) console.error("Error fetching video courses:", vidError);
 
       setCertifications(certData || []);
 
-      const transformed = (objData || []).map((obj) => ({
-        id: obj.id,
-        title: obj.objective_title,
-        description: obj.short_description || "No description provided.",
+      const transformed = (vidData || []).map((vid) => ({
+        id: vid.id,
+        title: vid.title,
+        description: vid.short_description || "No description provided.",
+        instructor: vid.instructor || "Unknown Instructor",
+        duration: vid.duration_minutes ? `${vid.duration_minutes} minutes` : "N/A",
         certificationName:
-          certData?.find((c) => c.id === obj.certification_id)?.name || "Unknown",
-        image: obj.image_url || "/assets/default-objective.png",
-        target_url: obj.target_url,
+          certData?.find((c) => c.id === vid.certification_id)?.name || "Unknown",
+        image: vid.image_url || "/assets/default-video.png",
+        target_url: vid.url,
       }));
 
-      setObjectives(transformed);
+      setVideos(transformed);
       setIsLoading(false);
     };
 
@@ -45,11 +47,11 @@ export default function ResourcesObjPage() {
   return (
     <section className="p-5 space-y-6">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-semibold">Official Exam Objectives</h2>
-        {objectives.length > 0 && (
+        <h2 className="text-2xl font-semibold">Video Courses</h2>
+        {videos.length > 0 && (
           <a
             className="text-sm text-muted-foreground hover:underline hover:text-primary"
-            href={"/dashboard/resource/objectives"}
+            href={"/dashboard/resource/video"}
           >
             View All
           </a>
@@ -57,18 +59,18 @@ export default function ResourcesObjPage() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
-        {objectives.slice(0, 3).map((obj) => (
+        {videos.slice(0, 3).map((vid) => (
           <a
-            key={obj.id}
-            href={obj.target_url || "#"}
+            key={vid.id}
+            href={vid.target_url || "#"}
             target="_blank"
             rel="noopener noreferrer"
             className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
           >
             <div className="relative w-full aspect-video overflow-hidden">
               <img
-                src={obj.image}
-                alt={obj.title}
+                src={vid.image}
+                alt={vid.title}
                 className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
               />
             </div>
@@ -76,16 +78,19 @@ export default function ResourcesObjPage() {
             <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Official Objective
+                  Video Courses
                 </p>
-                <h3 className="text-lg font-semibold">{obj.title}</h3>
+                <h3 className="text-lg font-semibold">{vid.title}</h3>
                 <p className="text-sm text-muted-foreground py-2">
-                  {obj.description}
+                  {vid.description}
+                </p>
+                 <p className="pt-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  {vid.instructor} • {vid.duration}
                 </p>
               </div>
 
               <div className="text-sm text-muted-foreground pt-2 font-bold">
-                Certification: {obj.certificationName}
+                Certification: {vid.certificationName}
               </div>
             </div>
           </a>
