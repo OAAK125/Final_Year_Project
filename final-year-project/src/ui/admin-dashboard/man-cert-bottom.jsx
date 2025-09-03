@@ -27,14 +27,16 @@ import {
   AlertDialogTitle,
   AlertDialogFooter,
   AlertDialogCancel,
+  AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import slug from "slug";
 
 export default function ManCertBottom() {
   const supabase = createClient();
 
   const [certifications, setCertifications] = useState([]);
   const [topics, setTopics] = useState([]);
-  const [certificationTypes, setcertificationTypes] = useState([]);
+  const [certificationTypes, setCertificationTypes] = useState([]);
   const [editingCert, setEditingCert] = useState(null);
   const [newCert, setNewCert] = useState({
     name: "",
@@ -44,7 +46,8 @@ export default function ManCertBottom() {
     max_questions: "",
     duration_minutes: "",
   });
-  const [showAlert, setShowAlert] = useState(false);
+  const [showEditAlert, setShowEditAlert] = useState(false);
+  const [showAddAlert, setShowAddAlert] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export default function ManCertBottom() {
 
       setCertifications(certs || []);
       setTopics(topicData || []);
-      setcertificationTypes(typeData || []);
+      setCertificationTypes(typeData || []);
     };
 
     fetchData();
@@ -75,11 +78,17 @@ export default function ManCertBottom() {
   const saveCert = async (cert, isNew = false) => {
     setSaving(true);
     try {
+      const certData = {
+        ...cert,
+        slug: slug(cert.name)
+      };
+
       if (isNew) {
-        await supabase.from("certifications").insert([cert]);
+        await supabase.from("certifications").insert([certData]);
       } else {
-        await supabase.from("certifications").update(cert).eq("id", cert.id);
+        await supabase.from("certifications").update(certData).eq("id", cert.id);
       }
+
       const { data: updatedCerts } = await supabase
         .from("certifications")
         .select("*");
@@ -93,12 +102,17 @@ export default function ManCertBottom() {
         max_questions: "",
         duration_minutes: "",
       });
-      setShowAlert(false);
+      setShowEditAlert(false);
+      setShowAddAlert(false);
     } catch (err) {
       console.error("Error saving certification:", err);
     } finally {
       setSaving(false);
     }
+  };
+
+  const cancelEdit = () => {
+    setEditingCert(null);
   };
 
   return (
@@ -115,7 +129,7 @@ export default function ManCertBottom() {
             <TableHead>Code</TableHead>
             <TableHead>Questions</TableHead>
             <TableHead>Duration (mins)</TableHead>
-            <TableHead>Edit</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -124,7 +138,7 @@ export default function ManCertBottom() {
               <TableCell>
                 {editingCert?.id === cert.id ? (
                   <Input
-                    value={editingCert.name}
+                    value={editingCert.name || ""}
                     onChange={(e) => handleEditChange("name", e.target.value)}
                   />
                 ) : (
@@ -184,7 +198,7 @@ export default function ManCertBottom() {
               <TableCell>
                 {editingCert?.id === cert.id ? (
                   <Input
-                    value={editingCert.code}
+                    value={editingCert.code || ""}
                     onChange={(e) => handleEditChange("code", e.target.value)}
                   />
                 ) : (
@@ -195,7 +209,7 @@ export default function ManCertBottom() {
                 {editingCert?.id === cert.id ? (
                   <Input
                     type="number"
-                    value={editingCert.max_questions}
+                    value={editingCert.max_questions || ""}
                     onChange={(e) =>
                       handleEditChange("max_questions", e.target.value)
                     }
@@ -208,7 +222,7 @@ export default function ManCertBottom() {
                 {editingCert?.id === cert.id ? (
                   <Input
                     type="number"
-                    value={editingCert.duration_minutes}
+                    value={editingCert.duration_minutes || ""}
                     onChange={(e) =>
                       handleEditChange("duration_minutes", e.target.value)
                     }
@@ -219,27 +233,34 @@ export default function ManCertBottom() {
               </TableCell>
               <TableCell>
                 {editingCert?.id === cert.id ? (
-                  <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
-                    <AlertDialogTrigger asChild>
-                      <Button size="sm">Save</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Save Changes?</AlertDialogTitle>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button
-                          onClick={() => saveCert(editingCert)}
-                          disabled={saving}
-                        >
-                          {saving ? "Saving..." : "Confirm"}
-                        </Button>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <div className="flex space-x-2">
+                    <AlertDialog open={showEditAlert} onOpenChange={setShowEditAlert}>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm">Save</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Save Changes?</AlertDialogTitle>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction asChild>
+                            <Button
+                              onClick={() => saveCert(editingCert)}
+                              disabled={saving}
+                            >
+                              {saving ? "Saving..." : "Confirm"}
+                            </Button>
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    <Button size="sm" variant="outline" onClick={cancelEdit}>
+                      Cancel
+                    </Button>
+                  </div>
                 ) : (
-                  <Button size="sm" onClick={() => setEditingCert(cert)}>
+                  <Button size="sm" onClick={() => setEditingCert({ ...cert })}>
                     Edit
                   </Button>
                 )}
@@ -253,14 +274,14 @@ export default function ManCertBottom() {
 
       {/* Add New Certification */}
       <h2 className="text-xl font-semibold mb-4">Add New Certification</h2>
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-3 gap-4 mb-4">
         <Input
           placeholder="Name"
           value={newCert.name}
           onChange={(e) => handleNewChange("name", e.target.value)}
         />
         <Select
-          value={newCert.topic_id?.toString() || ""}
+          value={newCert.topic_id}
           onValueChange={(val) => handleNewChange("topic_id", val)}
         >
           <SelectTrigger>
@@ -275,7 +296,7 @@ export default function ManCertBottom() {
           </SelectContent>
         </Select>
         <Select
-          value={newCert.certification_type_id?.toString() || ""}
+          value={newCert.certification_type_id}
           onValueChange={(val) => handleNewChange("certification_type_id", val)}
         >
           <SelectTrigger>
@@ -307,23 +328,30 @@ export default function ManCertBottom() {
           value={newCert.duration_minutes}
           onChange={(e) => handleNewChange("duration_minutes", e.target.value)}
         />
-        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
-          <AlertDialogTrigger asChild>
-            <Button>Add Certification</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Save New Certification?</AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+      </div>
+
+      <AlertDialog open={showAddAlert} onOpenChange={setShowAddAlert}>
+        <AlertDialogTrigger asChild>
+          <Button
+            disabled={!newCert.name.trim() || !newCert.code.trim()}
+          >
+            Add Certification
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save New Certification?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction asChild>
               <Button onClick={() => saveCert(newCert, true)} disabled={saving}>
                 {saving ? "Saving..." : "Confirm"}
               </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

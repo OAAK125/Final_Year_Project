@@ -42,6 +42,7 @@ export default function QuizQuestionsPage() {
       }
 
       const { data, error } = await query.order("id", { ascending: true });
+      console.log(data)
       if (error) console.error(error);
       else setQuestions(data || []);
       setPage(1);

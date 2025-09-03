@@ -20,16 +20,19 @@ import {
   AlertDialogTitle,
   AlertDialogFooter,
   AlertDialogCancel,
+  AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import slug from "slug";
 
 export default function ManCertTop() {
   const supabase = createClient();
 
   const [topics, setTopics] = useState([]);
   const [certTypes, setCertTypes] = useState([]);
-  const [newTopic, setNewTopic] = useState({ name: "" });
-  const [newCertType, setNewCertType] = useState({ name: "" });
-  const [showAlert, setShowAlert] = useState(false);
+  const [newTopic, setNewTopic] = useState("");
+  const [newCertType, setNewCertType] = useState("");
+  const [showTopicAlert, setShowTopicAlert] = useState(false);
+  const [showCertAlert, setShowCertAlert] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -46,19 +49,26 @@ export default function ManCertTop() {
     fetchData();
   }, []);
 
-  const handleNewTopicChange = (value) => setNewTopic({ name: value });
-  const handleNewCertTypeChange = (value) => setNewCertType({ name: value });
-
   const saveItem = async (item, table) => {
     setSaving(true);
     try {
-      await supabase.from(table).insert([item]);
+      const { error } = await supabase.from(table).insert([{ name: item, slug: slug(item) }]);
+
+      if (error) {
+        console.error(`Error saving to ${table}:`, error);
+        return;
+      }
+
       const { data } = await supabase.from(table).select("*");
-      if (table === "topics") setTopics(data || []);
-      else setCertTypes(data || []);
-      setNewTopic({ name: "" });
-      setNewCertType({ name: "" });
-      setShowAlert(false);
+      if (table === "topics") {
+        setTopics(data || []);
+        setNewTopic("");
+        setShowTopicAlert(false);
+      } else {
+        setCertTypes(data || []);
+        setNewCertType("");
+        setShowCertAlert(false);
+      }
     } catch (err) {
       console.error(`Error saving to ${table}:`, err);
     } finally {
@@ -91,12 +101,17 @@ export default function ManCertTop() {
       <div className="mt-4 flex gap-2">
         <Input
           placeholder="New Topic"
-          value={newTopic.name}
-          onChange={(e) => handleNewTopicChange(e.target.value)}
+          value={newTopic}
+          onChange={(e) => setNewTopic(e.target.value)}
         />
-        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+        <AlertDialog open={showTopicAlert} onOpenChange={setShowTopicAlert}>
           <AlertDialogTrigger asChild>
-            <Button>Add Topic</Button>
+            <Button
+              onClick={() => setShowTopicAlert(true)}
+              disabled={!newTopic.trim()}
+            >
+              Add Topic
+            </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -104,9 +119,14 @@ export default function ManCertTop() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <Button onClick={() => saveItem(newTopic, "topics")} disabled={saving}>
-                {saving ? "Saving..." : "Confirm"}
-              </Button>
+              <AlertDialogAction asChild>
+                <Button
+                  onClick={() => saveItem(newTopic, "topics")}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Confirm"}
+                </Button>
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -135,12 +155,17 @@ export default function ManCertTop() {
       <div className="mt-4 flex gap-2">
         <Input
           placeholder="New Certification Type"
-          value={newCertType.name}
-          onChange={(e) => handleNewCertTypeChange(e.target.value)}
+          value={newCertType}
+          onChange={(e) => setNewCertType(e.target.value)}
         />
-        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+        <AlertDialog open={showCertAlert} onOpenChange={setShowCertAlert}>
           <AlertDialogTrigger asChild>
-            <Button>Add Certification Type</Button>
+            <Button
+              onClick={() => setShowCertAlert(true)}
+              disabled={!newCertType.trim()}
+            >
+              Add Certification Type
+            </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -148,12 +173,14 @@ export default function ManCertTop() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <Button
-                onClick={() => saveItem(newCertType, "certification_type")}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Confirm"}
-              </Button>
+              <AlertDialogAction asChild>
+                <Button
+                  onClick={() => saveItem(newCertType, "certification_type")}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Confirm"}
+                </Button>
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
