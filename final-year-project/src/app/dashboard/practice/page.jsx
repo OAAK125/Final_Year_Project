@@ -44,6 +44,9 @@ const PracticePage = () => {
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedArrangement, setSelectedArrangement] = useState("");
 
+  // 🔑 NEW: store subscription
+  const [subscription, setSubscription] = useState(null);
+
   const fetchBookmarks = async () => {
     const {
       data: { user },
@@ -58,6 +61,25 @@ const PracticePage = () => {
     if (!error && data) {
       const ids = new Set(data.map((b) => b.certification_id));
       setBookmarkedIds(ids);
+    }
+  };
+
+  // 🔑 NEW: fetch subscription info
+  const fetchSubscription = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .select("plan_id, certification_id, plans(name)")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (!error && data) {
+      setSubscription(data);
     }
   };
 
@@ -101,6 +123,7 @@ const PracticePage = () => {
 
     fetchFilters();
     fetchBookmarks();
+    fetchSubscription(); // 🔑 fetch subscription on mount
   }, []);
 
   useEffect(() => {
@@ -150,6 +173,17 @@ const PracticePage = () => {
         };
       });
 
+      // 🔑 sort based on plan
+      if (subscription?.plans?.name === "Standard" && subscription.certification_id) {
+        transformed.sort((a, b) => {
+          if (a.id === subscription.certification_id) return -1;
+          if (b.id === subscription.certification_id) return 1;
+          return 0;
+        });
+      }
+      // Free and Full-Access → show all as-is
+
+      // arrangement filter after subscription ordering
       switch (filters.arrangement) {
         case "popular":
           transformed.sort((a, b) => b.participants - a.participants);
@@ -169,7 +203,7 @@ const PracticePage = () => {
     };
 
     fetchCertificationsAndQuizzes();
-  }, [filters]);
+  }, [filters, subscription]);
 
   return (
     <section className="p-5 space-y-6 space-x-10">
