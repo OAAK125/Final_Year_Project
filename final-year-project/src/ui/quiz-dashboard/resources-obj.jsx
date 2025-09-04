@@ -86,7 +86,9 @@ export default function ResourcesObjPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-center text-muted-foreground">Loading...</p>
+        <div className="min-h-[300px] flex items-center justify-center">
+          <p className="text-sm text-gray-600">Loading exam objectives...</p>
+        </div>
       ) : (
         <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
           {objectives.slice(0, 3).map((obj) => (
