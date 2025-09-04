@@ -2,26 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function VideoPage() {
   const supabase = createClient();
 
   const [certifications, setCertifications] = useState([]);
   const [videos, setVideos] = useState([]);
+  const [subscription, setSubscription] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
 
-      const [{ data: certData, error: certError }, { data: vidData, error: vidError }] =
-        await Promise.all([
-          supabase.from("certifications").select("id, name"),
-          supabase.from("video_courses").select("*"),
-        ]);
+      // ✅ fetch user + subscription
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (certError) console.error("Error fetching certifications:", certError);
-      if (vidError) console.error("Error fetching video courses:", vidError);
+      if (user) {
+        setUserId(user.id);
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("plan_id, certification_id, plans(name)")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .maybeSingle();
+        setSubscription(sub);
+      }
+
+      // ✅ fetch certs + videos
+      const [{ data: certData }, { data: vidData }] = await Promise.all([
+        supabase.from("certifications").select("id, name"),
+        supabase.from("video_courses").select("*"),
+      ]);
 
       setCertifications(certData || []);
 
@@ -31,6 +48,7 @@ export default function VideoPage() {
         description: vid.short_description || "No description provided.",
         instructor: vid.instructor || "Unknown Instructor",
         duration: vid.duration_minutes ? `${vid.duration_minutes} minutes` : "N/A",
+        certificationId: vid.certification_id,
         certificationName:
           certData?.find((c) => c.id === vid.certification_id)?.name || "Unknown",
         image: vid.image_url || "/assets/default-video.png",
@@ -42,7 +60,18 @@ export default function VideoPage() {
     };
 
     fetchData();
-  }, []);
+  }, [supabase]);
+
+  // ✅ filter by subscription
+  const getVisibleVideos = () => {
+    if (!subscription || subscription.plans?.name === "Free") return [];
+    if (subscription.plans?.name === "Standard") {
+      return videos.filter((v) => v.certificationId === subscription.certification_id);
+    }
+    return videos; // All-Access
+  };
+
+  const visibleVideos = getVisibleVideos();
 
   return (
     <section className="p-5 space-y-6">
@@ -50,44 +79,63 @@ export default function VideoPage() {
         <h2 className="text-2xl font-semibold">Video Courses</h2>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
-        {videos.map((vid) => (
-          <a
-            key={vid.id}
-            href={vid.target_url || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
-          >
-            <div className="relative w-full aspect-video overflow-hidden">
-              <img
-                src={vid.image}
-                alt={vid.title}
-                className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-
-            <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Video Courses
-                </p>
-                <h3 className="text-lg font-semibold">{vid.title}</h3>
-                <p className="text-sm text-muted-foreground py-2">
-                  {vid.description}
-                </p>
-                 <p className="pt-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {vid.instructor} • {vid.duration}
-                </p>
+      {isLoading ? (
+        <div className="min-h-[300px] flex flex-col items-center justify-center text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+          <p className="text-sm text-gray-600">Loading...</p>
+        </div>
+      ) : !subscription || subscription.plans?.name === "Free" ? (
+        <div className="flex justify-center">
+          {userId && (
+            <Button
+              variant="default"
+              className="text-base font-semibold"
+              onClick={() => (window.location.href = `/pricing/${userId}`)}
+            >
+              Pay to View
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-10">
+          {visibleVideos.map((vid) => (
+            <a
+              key={vid.id}
+              href={vid.target_url || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group border border-border rounded-xl overflow-hidden flex flex-col transition-colors duration-300 hover:bg-muted"
+            >
+              <div className="relative w-full aspect-video overflow-hidden">
+                <img
+                  src={vid.image}
+                  alt={vid.title}
+                  className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
 
-              <div className="text-sm text-muted-foreground pt-2 font-bold">
-                Certification: {vid.certificationName}
+              <div className="p-6 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Video Course
+                  </p>
+                  <h3 className="text-lg font-semibold">{vid.title}</h3>
+                  <p className="text-sm text-muted-foreground py-2">
+                    {vid.description}
+                  </p>
+                  <p className="pt-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {vid.instructor} • {vid.duration}
+                  </p>
+                </div>
+
+                <div className="text-sm text-muted-foreground pt-2 font-bold">
+                  Certification: {vid.certificationName}
+                </div>
               </div>
-            </div>
-          </a>
-        ))}
-      </div>
+            </a>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
