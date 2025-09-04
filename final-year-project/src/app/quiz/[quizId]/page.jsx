@@ -22,13 +22,15 @@ export default function QuizInfoPage() {
   const supabase = createClient();
 
   const [quiz, setQuiz] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [error, setError] = useState(null);
 
   const searchParams = useSearchParams();
-  const from = searchParams.get("from"); 
+  const from = searchParams.get("from");
 
   useEffect(() => {
-    async function fetchQuiz() {
+    async function fetchQuizAndSubscription() {
       const { data, error } = await supabase
         .from("quizzes")
         .select(
@@ -51,12 +53,28 @@ export default function QuizInfoPage() {
 
       if (error || !data) {
         setError("Quiz not found.");
-      } else {
-        setQuiz(data);
+        return;
       }
+      setQuiz(data);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setUserId(user.id);
+
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("plan_id, certification_id, plans(name)")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      setSubscription(sub);
     }
 
-    if (quizId) fetchQuiz();
+    if (quizId) fetchQuizAndSubscription();
   }, [quizId, supabase]);
 
   if (error) {
@@ -78,6 +96,7 @@ export default function QuizInfoPage() {
 
   const certification = quiz.certifications;
   const instructions = quiz.instructions?.split("\n").filter(Boolean) || [];
+  const plan = subscription?.plans?.name;
 
   const handleStartQuiz = async () => {
     const {
@@ -104,21 +123,101 @@ export default function QuizInfoPage() {
       return;
     }
 
-    router.push(`/quiz/${quizId}/start?session_id=${sessionData.id}&from=${from || "/dashboard/practice"}`);
-
+    router.push(
+      `/quiz/${quizId}/start?session_id=${sessionData.id}&from=${
+        from || "/dashboard/practice"
+      }`
+    );
   };
 
   const handleClose = () => {
-  router.push(from || "/dashboard/practice"); 
-};
+    router.push(from || "/dashboard/practice");
+  };
 
+  const renderButtons = () => {
+    if (!subscription || plan === "Free") {
+      return (
+        <div className="flex flex-col gap-3 w-full">
+          <Button
+            size="lg"
+            variant="outline"
+            className="w-full text-base font-semibold"
+            onClick={() => router.push(`/quiz/${quizId}/trial_start`)}
+          >
+            Start Trial Quiz
+          </Button>
+          {userId && (
+            <Button
+              size="lg"
+              variant="default"
+              className="w-full text-base font-semibold"
+              onClick={() => router.push(`/pricing/${userId}`)}
+            >
+              Pay for Full Quiz
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    if (plan === "Standard") {
+      if (subscription.certification_id === quiz.certification_id) {
+        return (
+          <Button
+            size="lg"
+            className="w-full text-base font-semibold"
+            onClick={handleStartQuiz}
+          >
+            Start Quiz
+          </Button>
+        );
+      } else {
+        return (
+          <div className="flex flex-col gap-3 w-full">
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full text-base font-semibold"
+              onClick={() => router.push(`/quiz/${quizId}/trial_start`)}
+            >
+              Start Trial Quiz
+            </Button>
+            {userId && (
+              <Button
+                size="lg"
+                variant="default"
+                className="w-full text-base font-semibold"
+                onClick={() => router.push(`/pricing/${userId}`)}
+              >
+                Pay for Full Quiz
+              </Button>
+            )}
+          </div>
+        );
+      }
+    }
+
+    if (plan === "All-Access") {
+      return (
+        <Button
+          size="lg"
+          className="w-full text-base font-semibold"
+          onClick={handleStartQuiz}
+        >
+          Start Quiz
+        </Button>
+      );
+    }
+
+    return null;
+  };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-white px-4">
-      <div className="max-w-xl w-full text-center relative space-y-3">
+    <section className="min-h-screen flex items-center justify-center bg-white px-4 overflow-hidden">
+      <div className="max-w-xl w-full flex flex-col items-center justify-center relative gap-4">
         {/* Top Right Instructions Button */}
         {instructions.length > 0 && (
-          <div className="flex justify-end gap-2 absolute top-6 right-6">
+          <div className="absolute top-6 right-6">
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1">
@@ -157,20 +256,14 @@ export default function QuizInfoPage() {
 
         {/* Logo */}
         {quiz.image && (
-          <div className="flex justify-center mt-20">
-            <img
-              src={quiz.image}
-              alt="Certification logo"
-              className="w-30 h-30"
-            />
+          <div className="flex justify-center">
+            <img src={quiz.image} alt="Certification logo" className="w-28 h-28" />
           </div>
         )}
 
         {/* Heading */}
         <h1 className="text-2xl font-semibold">{certification.name}</h1>
-        <p className="text-muted-foreground text-lg">
-          Code: {certification.code}
-        </p>
+        <p className="text-muted-foreground text-lg">Code: {certification.code}</p>
 
         {/* Description */}
         <p className="text-muted-foreground text-base whitespace-pre-line">
@@ -183,19 +276,12 @@ export default function QuizInfoPage() {
             <Clock className="w-4 h-4" /> {certification.duration_minutes} mins
           </div>
           <div className="flex items-center gap-1">
-            <FileText className="w-4 h-4" /> {certification.max_questions}{" "}
-            questions
+            <FileText className="w-4 h-4" /> {certification.max_questions} questions
           </div>
         </div>
 
-        {/* Start Quiz Button */}
-        <Button
-          size="lg"
-          className="w-1/2 text-base font-semibold mt-2"
-          onClick={handleStartQuiz}
-        >
-          Start Quiz
-        </Button>
+        {/* 🔑 Subscription-based buttons */}
+        <div className="mt-4 w-full flex flex-col items-center">{renderButtons()}</div>
       </div>
     </section>
   );

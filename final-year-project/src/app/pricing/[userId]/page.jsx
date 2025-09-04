@@ -14,8 +14,8 @@ const supabase = createClient(
 );
 
 // TODO: Replace with your actual plan IDs from Supabase
-const STANDARD_PLAN_ID = "00000000-0000-0000-0000-000000000000";
-const FULL_ACCESS_PLAN_ID = "11111111-1111-1111-1111-111111111111";
+const STANDARD_PLAN_ID = "5623589a-885c-4ac1-8842-12247cadc89e";
+const FULL_ACCESS_PLAN_ID = "3ed77a5b-3fde-4bf8-ae4d-7952ec8197b6";
 
 export default function Pricing() {
   const [certifications, setCertifications] = useState([]);
@@ -58,68 +58,33 @@ export default function Pricing() {
   }
 
   return (
-    <section id="Pricing" className="py-16 md:py-32">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="mx-auto max-w-2xl space-y-6 text-center">
-          <h1 className="text-center text-4xl font-semibold lg:text-5xl">
-            Pricing Tiers
-          </h1>
+    <section id="Pricing" className="min-h-screen flex items-center justify-center bg-white px-6 py-12 overflow-hidden">
+      <div className="w-full max-w-6xl flex flex-col items-center gap-10">
+        {/* Heading */}
+        <div className="max-w-2xl text-center space-y-4">
+          <h1 className="text-4xl font-semibold lg:text-5xl">Pricing Tiers</h1>
           <p>
             Choose a plan that fits your certification journey — from first-time learners to
             professionals pursuing certifications.
           </p>
         </div>
 
-        <div className="mt-8 grid gap-6 md:mt-20 md:grid-cols-3">
+        {/* Plans Grid */}
+        <div className="grid gap-6 md:grid-cols-3 w-full">
           {/* Free Plan */}
-          <Card className="flex flex-col justify-between">
+          <Card className="flex flex-col h-full justify-between">
             <div>
               <CardHeader>
                 <CardTitle className="font-medium">Free</CardTitle>
                 <span className="my-3 block text-2xl font-semibold">$0 / mo</span>
                 <CardDescription className="text-sm">Per user</CardDescription>
               </CardHeader>
-
               <CardContent className="space-y-4">
-                <hr className="border-dashed mt-6" />
-                <ul className="list-outside space-y-3 text-sm">
-                  {["1 Trial Practice Test per Certification", "Access to exam objectives"].map(
-                    (item, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <Check className="size-3" />
-                        {item}
-                      </li>
-                    )
-                  )}
-                </ul>
-              </CardContent>
-            </div>
-
-          </Card>
-
-          {/* Standard Plan */}
-          <Card className="relative flex flex-col justify-between">
-            <span className="bg-linear-to-br/increasing absolute inset-x-0 -top-3 mx-auto flex h-6 w-fit items-center rounded-full from-purple-400 to-amber-300 px-3 py-1 text-xs font-medium text-amber-950 ring-1 ring-inset ring-white/20 ring-offset-1 ring-offset-gray-950/5">
-              Popular
-            </span>
-
-            <div>
-              <CardHeader>
-                <CardTitle className="font-medium">Standard</CardTitle>
-                <span className="my-3 block text-2xl font-semibold">$15 / mo</span>
-                <CardDescription className="text-sm">Per user</CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                <hr className="border-dashed mt-6" />
-                <ul className="list-outside space-y-3 text-sm">
+                <hr className="border-dashed my-4" />
+                <ul className="list-outside space-y-3 text-sm text-left">
                   {[
-                    "Everything from Free, plus:",
-                    "Full Access to 1 Chosen Certification",
-                    "Unlimited Practice Tests for that Cert",
-                    "Curated list of Resources for that Cert",
-                    "Question Flagging for Review",
-                    "Chance to be a contributor",    
+                    "1 Trial Practice Test per Certification",
+                    "Access to exam objectives",
                   ].map((item, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <Check className="size-3" />
@@ -127,9 +92,39 @@ export default function Pricing() {
                     </li>
                   ))}
                 </ul>
+              </CardContent>
+            </div>
+          </Card>
 
-                {/* Dropdown for choosing certification */}
-                <div className="my-5 pt-4">
+          {/* Standard Plan */}
+          <Card className="relative flex flex-col h-full justify-between">
+            <span className="bg-linear-to-br/increasing absolute inset-x-0 -top-3 mx-auto flex h-6 w-fit items-center rounded-full from-purple-400 to-amber-300 px-3 py-1 text-xs font-medium text-amber-950 ring-1 ring-inset ring-white/20 ring-offset-1 ring-offset-gray-950/5">
+              Popular
+            </span>
+            <div>
+              <CardHeader>
+                <CardTitle className="font-medium">Standard</CardTitle>
+                <span className="my-3 block text-2xl font-semibold">$15 / mo</span>
+                <CardDescription className="text-sm">Per user</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <hr className="border-dashed my-4" />
+                <ul className="list-outside space-y-3 text-sm text-left">
+                  {[
+                    "Everything from Free, plus:",
+                    "Full Access to 1 Chosen Certification",
+                    "Unlimited Practice Tests for that Cert",
+                    "Curated list of Resources for that Cert",
+                    "Question Flagging for Review",
+                    "Chance to be a contributor",
+                  ].map((item, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Check className="size-3" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4">
                   <label className="mb-2 block text-sm font-medium">Choose Certification</label>
                   <select
                     className="w-full rounded-md border border-gray-300 p-2 text-sm"
@@ -146,7 +141,6 @@ export default function Pricing() {
                 </div>
               </CardContent>
             </div>
-
             <CardContent>
               <Button
                 variant="default"
@@ -165,17 +159,16 @@ export default function Pricing() {
           </Card>
 
           {/* Full-Access Plan */}
-          <Card className="flex flex-col justify-between">
+          <Card className="flex flex-col h-full justify-between">
             <div>
               <CardHeader>
                 <CardTitle className="font-medium">Full-Access</CardTitle>
                 <span className="my-3 block text-2xl font-semibold">$40 / mo</span>
                 <CardDescription className="text-sm">Per user</CardDescription>
               </CardHeader>
-
               <CardContent className="space-y-4">
-                <hr className="border-dashed mt-6" />
-                <ul className="list-outside space-y-3 text-sm">
+                <hr className="border-dashed my-4" />
+                <ul className="list-outside space-y-3 text-sm text-left">
                   {[
                     "Everything from Standard, plus:",
                     "Access to All Certifications",
@@ -192,7 +185,6 @@ export default function Pricing() {
                 </ul>
               </CardContent>
             </div>
-
             <CardContent>
               <Button
                 variant="default"

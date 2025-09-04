@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { ensureFreeSubscription } from "@/utils/ensureFreeSubscription";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -18,6 +19,9 @@ export default function AuthCallbackPage() {
         router.push("/authentication/login");
         return;
       }
+
+      // ✅ Ensure the user always has a Free subscription
+      await ensureFreeSubscription(user.id);
 
       const { data: profile, error } = await supabase
         .from("profiles")
@@ -37,7 +41,7 @@ export default function AuthCallbackPage() {
         case "contributor":
           router.push("/contributor");
           break;
-        case "student":               // ✅ handle explicitly
+        case "student": // ✅ explicitly handled
         default:
           router.push("/dashboard");
       }

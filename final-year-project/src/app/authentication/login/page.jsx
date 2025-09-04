@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { ensureFreeSubscription } from "@/utils/ensureFreeSubscription";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -46,6 +47,9 @@ export default function AuthenticationLoginPage() {
     }
 
     if (data?.user) {
+      // ✅ Ensure Free plan if user has no active subscription
+      await ensureFreeSubscription(data.user.id);
+
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
