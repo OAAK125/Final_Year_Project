@@ -14,6 +14,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
     }
 
+    console.log(" PAYSTACK_SECRET_KEY loaded, first 4 chars:", secret.slice(0, 4));
+
+
     // Verify signature
     const hash = crypto
       .createHmac("sha512", secret)
