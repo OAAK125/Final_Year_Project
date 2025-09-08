@@ -23,6 +23,31 @@ export default function DashboardPage() {
     checkSession();
   }, [router, supabase]);
 
+  // in your dashboard page
+useEffect(() => {
+  const verifyPayment = async () => {
+    const reference = new URLSearchParams(window.location.search).get("reference");
+    if (!reference) return;
+
+    const res = await fetch("/api/paystack/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reference }),
+    });
+
+    const data = await res.json();
+    if (data.status === "success") {
+      // subscription updated in DB
+      alert("Payment successful! Your subscription is now active.");
+    } else {
+      alert("Payment verification failed.");
+    }
+  };
+
+  verifyPayment();
+}, []);
+
+
   return <DashboardHome />;
 }
 

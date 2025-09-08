@@ -7,10 +7,10 @@ const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 
 export async function POST(req: Request) {
   try {
-    // ✅ Await cookies() to get the cookie store
+    // Await cookies() to get the cookie store
     const cookieStore = await cookies();
 
-    // ✅ Use the recommended non-deprecated API
+    // Use the recommended non-deprecated API
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
