@@ -344,7 +344,7 @@ export function GenerateQuiz() {
                         <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-md border">
                             <h3 className="font-medium flex items-center mb-2">
                                 <Sparkles className="h-4 w-4 mr-2 text-blue-500" />
-                                AI Question Generator (Gemini)
+                                Questions Generator
                             </h3>
                             <p className="text-sm text-muted-foreground mb-3">
                                 Generate relevant questions based on the selected certification
@@ -365,7 +365,7 @@ export function GenerateQuiz() {
                                     {isGenerating ? (
                                         <>Generating Questions...</>
                                     ) : (
-                                        <>Generate Questions with AI</>
+                                        <>Generate Questions</>
                                     )}
                                 </Button>
                             </div>

@@ -62,12 +62,12 @@ const adminMenu = [
     icon: BiUser,
     solidIcon: BiSolidUser,
   },
-  {
-    name: "Manage Contributors",
-    href: "/admin/contributors",
-    icon: BiGroup,
-    solidIcon: BiSolidGroup,
-  },
+  // {
+  //   name: "Manage Contributors",
+  //   href: "/admin/contributors",
+  //   icon: BiGroup,
+  //   solidIcon: BiSolidGroup,
+  // },
 ]
 
 function NavGroup({ label, items }) {
