@@ -6,12 +6,9 @@ import { createServerClient } from "@supabase/ssr";
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 
 export async function POST(req: Request) {
-
   try {
-    // Await cookies() to get the cookie store
     const cookieStore = await cookies();
 
-    // Use the recommended non-deprecated API
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -58,28 +55,33 @@ export async function POST(req: Request) {
       );
     }
 
-    const paystackRes = await fetch("https://api.paystack.co/transaction/initialize", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: user.email,
-        amount: plan.price * 100,
-        metadata: {
-          user_id: user.id,
-          plan_id,
-          certification_id: plan.name === "Standard" ? certification_id : null,
+    // ✅ Stringify metadata for Paystack
+    const paystackRes = await fetch(
+      "https://api.paystack.co/transaction/initialize",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json",
         },
-        callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
-      }),
-    });
+        body: JSON.stringify({
+          email: user.email,
+          amount: plan.price * 100,
+          metadata: JSON.stringify({
+            user_id: user.id,
+            plan_id,
+            certification_id: plan.name === "Standard" ? certification_id : null,
+          }),
+          callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
+        }),
+      }
+    );
 
     const json = await paystackRes.json();
+    console.log("🔵 Paystack Init Response:", json);
 
     if (!paystackRes.ok) {
-      console.error("Paystack error:", json);
+      console.error("❌ Paystack error:", json);
       return NextResponse.json(
         { error: "Paystack initialization failed", details: json },
         { status: 500 }
