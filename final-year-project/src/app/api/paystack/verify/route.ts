@@ -5,12 +5,13 @@ import { createClient } from "@supabase/supabase-js";
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // service role for DB updates
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(req: Request) {
   try {
     const { reference } = await req.json();
+    console.log("🔵 Received verify request for reference:", reference);
 
     const verifyRes = await fetch(
       `https://api.paystack.co/transaction/verify/${reference}`,
@@ -20,16 +21,15 @@ export async function POST(req: Request) {
     );
 
     const json = await verifyRes.json();
-    console.log("🔵 Paystack Verify Response:", json);
+    console.log("🔵 Full Verify Response:", JSON.stringify(json, null, 2));
 
-    if (!verifyRes.ok || json.data.status !== "success") {
+    if (!verifyRes.ok || json.data?.status !== "success") {
       return NextResponse.json(
         { error: "Payment not successful", details: json },
         { status: 400 }
       );
     }
 
-    // ✅ Parse metadata (could be object or string)
     let user_id, plan_id, certification_id;
     try {
       const rawMeta = json.data.metadata;
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
     if (!user_id || !plan_id) {
       return NextResponse.json(
-        { error: "Invalid metadata in verification response" },
+        { error: "Invalid metadata in verification response", meta: json.data.metadata },
         { status: 400 }
       );
     }
