@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // ✅ Fetch profile and enforce role-based access
+  // Fetch profile and enforce role-based access
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")

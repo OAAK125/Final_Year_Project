@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { ensureFreeSubscription } from "@/utils/ensureFreeSubscription";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -98,6 +99,9 @@ export default function AuthenticationSignupPage() {
       avatar_url: meta.avatar_url || "",
       provider,
     });
+
+    // Ensure user has Free subscription
+    await ensureFreeSubscription(loggedInUser.id);
 
     router.push("/dashboard");
   };

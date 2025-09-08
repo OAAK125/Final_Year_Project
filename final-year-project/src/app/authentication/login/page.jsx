@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { ensureFreeSubscription } from "@/utils/ensureFreeSubscription";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -19,7 +20,7 @@ export default function AuthenticationLoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ✅ Email/password login
+  // Email/password login
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -38,7 +39,9 @@ export default function AuthenticationLoginPage() {
 
     if (loginError) {
       if (loginError.message.toLowerCase().includes("email not confirmed")) {
-        setError("Email not confirmed. Check your inbox to verify your account.");
+        setError(
+          "Email not confirmed. Check your inbox to verify your account."
+        );
       } else {
         setError(loginError.message);
       }
@@ -46,6 +49,9 @@ export default function AuthenticationLoginPage() {
     }
 
     if (data?.user) {
+      // Ensure Free plan if user has no active subscription
+      await ensureFreeSubscription(data.user.id);
+
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
@@ -70,7 +76,7 @@ export default function AuthenticationLoginPage() {
     }
   };
 
-  // ✅ OAuth login (redirects to /auth/callback)
+  // OAuth login (redirects to /auth/callback)
   const handleOAuthLogin = async (provider) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -111,7 +117,12 @@ export default function AuthenticationLoginPage() {
             className="flex items-center justify-center gap-2"
             onClick={() => handleOAuthLogin("google")}
           >
-            <Image src="/assets/authentication/google.svg" alt="Google logo" width={20} height={20} />
+            <Image
+              src="/assets/authentication/google.svg"
+              alt="Google logo"
+              width={20}
+              height={20}
+            />
           </Button>
 
           <Button
@@ -120,7 +131,12 @@ export default function AuthenticationLoginPage() {
             className="flex items-center justify-center gap-2"
             onClick={() => handleOAuthLogin("github")}
           >
-            <Image src="/assets/authentication/github.svg" alt="Github logo" width={20} height={20} />
+            <Image
+              src="/assets/authentication/github.svg"
+              alt="Github logo"
+              width={20}
+              height={20}
+            />
           </Button>
         </div>
 
@@ -183,7 +199,10 @@ export default function AuthenticationLoginPage() {
         <div className="mt-6 rounded-md border bg-muted p-4 text-center">
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/authentication/signup" className="font-medium text-primary hover:underline">
+            <Link
+              href="/authentication/signup"
+              className="font-medium text-primary hover:underline"
+            >
               Create account
             </Link>
           </p>

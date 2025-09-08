@@ -2,25 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Info } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import dynamic from "next/dynamic";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { createClient } from "@/utils/supabase/client";
 
 dayjs.extend(relativeTime);
 
-const SubTopicPerformanceChart = dynamic(
-  () => import("@/ui/quiz-dashboard/bar-chart"),
-  { ssr: false }
-);
 
 const HomeTop = ({ heading = "Retake Last Test" }) => {
   const router = useRouter();
@@ -150,51 +140,10 @@ const HomeTop = ({ heading = "Retake Last Test" }) => {
             </div>
           )}
         </div>
-
-        {/* Sub-topic performance chart */}
-        <div className="md:col-span-2 md:row-span-2 border border-border rounded-xl overflow-hidden flex flex-col justify-between">
-          <div className="p-6 md:p-8 space-y-4">
-            <div className="flex items-center gap-3">
-              <h3 className="text-xl font-semibold">
-                Your Sub-topic Strengths
-              </h3>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <Info className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="text-sm max-w-xs">
-                  This shows how many times you've correctly answered questions
-                  in each sub-topic.
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <SubTopicPerformanceChart onDataStatusChange={setHasChartData} />
-
-            {hasChartData ? (
-              <Button
-                variant="outline"
-                className="mt-4 w-fit"
-                onClick={() => router.push("/dashboard/personalized")}
-              >
-                Improve Your Weak Areas
-              </Button>
-            ) : (
-              <Button
-                variant="default"
-                className="mt-4 w-fit"
-                onClick={() => router.push("/dashboard/practice")}
-              >
-                Go to Practice Test
-              </Button>
-            )}
-          </div>
-        </div>
       </div>
     </section>
   );
 };
 
 export { HomeTop };
+

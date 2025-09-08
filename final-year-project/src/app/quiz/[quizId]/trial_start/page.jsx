@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { X, Timer, Flag, Loader2 } from "lucide-react";
+import { X, Timer, Loader2 } from "lucide-react";
 
 import {
   AlertDialog,
@@ -20,15 +20,16 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 
-export default function QuizQuestionPage() {
+export default function TrialQuestionPage() {
   const router = useRouter();
   const { quizId } = useParams();
-  const supabase = createClient();
   const searchParams = useSearchParams();
+  const supabase = createClient();
+
+  const sessionId = searchParams.get("session_id");
   const from = searchParams.get("from");
 
   const [user, setUser] = useState(null);
-  const [sessionId, setSessionId] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -36,7 +37,6 @@ export default function QuizQuestionPage() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showExitDialog, setShowExitDialog] = useState(false);
-  const [isFlagged, setIsFlagged] = useState(false);
 
   const question = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
@@ -46,21 +46,15 @@ export default function QuizQuestionPage() {
     const initialize = async () => {
       const { data, error } = await supabase.auth.getUser();
       if (error || !data?.user) return router.push("/authentication/login");
-
       setUser(data.user);
 
-      const sessionParam = new URLSearchParams(window.location.search).get(
-        "session_id"
-      );
-      if (!sessionParam) return router.push("/dashboard");
-
-      setSessionId(sessionParam);
+      if (!sessionId) return router.push("/dashboard");
     };
 
     initialize();
-  }, [router, supabase]);
+  }, [router, supabase, sessionId]);
 
-  // Fetch Quiz & Questions
+  // Fetch Quiz & Questions (trial_questions)
   useEffect(() => {
     const fetchQuiz = async () => {
       const { data: cert } = await supabase
@@ -74,19 +68,18 @@ export default function QuizQuestionPage() {
       setTimeLeft(cert.duration_minutes * 60);
 
       const { data: allQuestions } = await supabase
-        .from("questions")
+        .from("trial_questions")
         .select("*")
         .eq("certification_id", quizId);
 
       if (!allQuestions?.length) return;
 
+      // random sampling
       const randomSample = (arr, n) => {
         const result = [];
         const used = new Set();
         const len = arr.length;
         const take = Math.min(n, len);
-
-        // unique picks first
         while (result.length < take) {
           const idx = Math.floor(Math.random() * len);
           if (!used.has(idx)) {
@@ -94,17 +87,13 @@ export default function QuizQuestionPage() {
             result.push(arr[idx]);
           }
         }
-
-        // if not enough questions in the bank, fill remainder with random repeats
         while (result.length < n) {
           result.push(arr[Math.floor(Math.random() * len)]);
         }
-
         return result;
       };
 
       const selectedQuestions = randomSample(allQuestions, cert.max_questions);
-
       setQuestions(selectedQuestions);
       setProgress(100 / selectedQuestions.length);
       setLoading(false);
@@ -121,55 +110,15 @@ export default function QuizQuestionPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch Flag Status
-  useEffect(() => {
-    const checkFlagged = async () => {
-      if (!user || !question) return;
-      const { data } = await supabase
-        .from("flagged_questions")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("question_id", question.id)
-        .single();
-
-      setIsFlagged(!!data);
-    };
-
-    checkFlagged();
-  }, [user, question, supabase]);
-
-  // Toggle Flag Handler
-  const toggleFlag = async () => {
-    if (!user || !question || !sessionId) return;
-
-    if (isFlagged) {
-      // Remove
-      await supabase
-        .from("flagged_questions")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("question_id", question.id);
-      setIsFlagged(false);
-    } else {
-      // Add
-      await supabase.from("flagged_questions").insert({
-        user_id: user.id,
-        question_id: question.id,
-        quiz_session_id: sessionId,
-      });
-      setIsFlagged(true);
-    }
-  };
-
-  // Explicit handler for "I don't know"
+  // Handlers
   const handleDontKnow = async () => {
     if (user && question) {
-      await supabase.from("answers").upsert({
+      await supabase.from("trial_answers").upsert({
         user_id: user.id,
         question_id: question.id,
-        selected_answer: null, // store NULL when user doesn't know
+        selected_answer: null, // no answer
         is_correct: false,
-        quiz_session_id: sessionId,
+        trial_quiz_session_id: sessionId,
       });
     }
 
@@ -187,12 +136,12 @@ export default function QuizQuestionPage() {
       const selectedLetter = question.options[selected][0];
       const isCorrect = selectedLetter === correctLetter;
 
-      await supabase.from("answers").upsert({
+      await supabase.from("trial_answers").upsert({
         user_id: user.id,
         question_id: question.id,
         selected_answer: selectedLetter,
         is_correct: isCorrect,
-        quiz_session_id: sessionId,
+        trial_quiz_session_id: sessionId,
       });
     }
 
@@ -207,7 +156,6 @@ export default function QuizQuestionPage() {
 
   const handleSubmit = async () => {
     if (selected === null) {
-      // treat as "I don't know"
       await handleDontKnow();
       return;
     }
@@ -216,12 +164,12 @@ export default function QuizQuestionPage() {
       const selectedLetter = question.options[selected][0];
       const isCorrect = selectedLetter === correctLetter;
 
-      await supabase.from("answers").upsert({
+      await supabase.from("trial_answers").upsert({
         user_id: user.id,
         question_id: question.id,
         selected_answer: selectedLetter,
         is_correct: isCorrect,
-        quiz_session_id: sessionId,
+        trial_quiz_session_id: sessionId,
       });
     }
 
@@ -230,11 +178,14 @@ export default function QuizQuestionPage() {
 
   const finalizeSession = async () => {
     await supabase
-      .from("quiz_sessions")
-      .update({ ended_at: new Date().toISOString(), completed: true })
+      .from("trial_quiz_sessions")
+      .update({
+        ended_at: new Date().toISOString(),
+        completed: true,
+      })
       .eq("id", sessionId);
 
-    router.push(`/quiz/${quizId}/results?session_id=${sessionId}`);
+    router.push(`/quiz/${quizId}/trial_result?session_id=${sessionId}`);
   };
 
   const handlePrevious = () => {
@@ -254,7 +205,7 @@ export default function QuizQuestionPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-        <p className="text-sm text-gray-600">Loading...</p>
+        <p className="text-sm text-gray-600">Loading trial quiz...</p>
       </div>
     );
   }
@@ -280,9 +231,7 @@ export default function QuizQuestionPage() {
               <AlertDialogCancel>Resume</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() =>
-                  router.push(
-                    `/quiz/${quizId}?from=${from || "/dashboard/practice"}`
-                  )
+                  router.push(`/quiz/${quizId}?from=${from || "/dashboard"}`)
                 }
               >
                 Exit
@@ -296,13 +245,6 @@ export default function QuizQuestionPage() {
           <span>
             {currentQuestionIndex + 1}/{totalQuestions}
           </span>
-          <Button
-            variant="ghost"
-            onClick={toggleFlag}
-            className={`p-1 mx-1 ${isFlagged ? "text-primary" : "text-black"}`}
-          >
-            <Flag className={`w-4 h-4 ${isFlagged ? "fill-current" : ""}`} />
-          </Button>
         </div>
       </div>
 

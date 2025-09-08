@@ -9,12 +9,29 @@ export default function ObjectivesPage() {
 
   const [certifications, setCertifications] = useState([]);
   const [objectives, setObjectives] = useState([]);
+  const [subscription, setSubscription] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
 
+      // Fetch user subscription
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("plan_id, certification_id, plans(name)")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .maybeSingle();
+        setSubscription(sub);
+      }
+
+      // Fetch certs + objectives
       const [{ data: certData, error: certError }, { data: objData, error: objError }] =
         await Promise.all([
           supabase.from("certifications").select("id, name"),
@@ -26,9 +43,9 @@ export default function ObjectivesPage() {
 
       setCertifications(certData || []);
 
-      // Transform objectives for UI
       const transformed = (objData || []).map((obj) => ({
         id: obj.id,
+        certificationId: obj.certification_id,
         title: obj.objective_title,
         description: obj.short_description || "No description provided.",
         certificationName:
@@ -37,12 +54,21 @@ export default function ObjectivesPage() {
         target_url: obj.target_url,
       }));
 
-      setObjectives(transformed);
+      // If Standard: move their certification’s objectives to the top
+      let reordered = transformed;
+      if (subscription?.plans?.name === "Standard" && subscription.certification_id) {
+        reordered = [
+          ...transformed.filter((o) => o.certificationId === subscription.certification_id),
+          ...transformed.filter((o) => o.certificationId !== subscription.certification_id),
+        ];
+      }
+
+      setObjectives(reordered);
       setIsLoading(false);
     };
 
     fetchData();
-  }, []);
+  }, [supabase]);
 
   return (
     <section className="p-5 space-y-6">
