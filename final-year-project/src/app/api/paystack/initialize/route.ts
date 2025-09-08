@@ -6,6 +6,7 @@ import { createServerClient } from "@supabase/ssr";
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 
 export async function POST(req: Request) {
+
   try {
     // Await cookies() to get the cookie store
     const cookieStore = await cookies();

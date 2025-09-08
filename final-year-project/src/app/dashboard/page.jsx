@@ -11,7 +11,7 @@ export default function DashboardPage() {
 
   const [subscription, setSubscription] = useState(null);
 
-  // ✅ Check auth
+  //Check auth
   useEffect(() => {
     const checkSession = async () => {
       const {
