@@ -130,6 +130,41 @@ export default function QuizInfoPage() {
     );
   };
 
+  const handleStartTrialQuiz = async () => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError("You must be logged in to start the trial quiz.");
+      return;
+    }
+
+    const { data: sessionData, error: sessionError } = await supabase
+      .from("trial_quiz_sessions") // ✅ correct table
+      .insert({
+        user_id: user.id,
+        certification_id: quiz.certification_id,
+        started_at: new Date().toISOString(),
+        completed: false,
+      })
+      .select("id")
+      .single();
+
+    if (sessionError || !sessionData) {
+      console.error("Error creating trial session:", sessionError);
+      setError("Failed to start trial quiz session. Please try again.");
+      return;
+    }
+
+    router.push(
+      `/quiz/${quizId}/trial_start?session_id=${sessionData.id}&from=${
+        from || "/dashboard"
+      }`
+    );
+  };
+
   const handleClose = () => {
     router.push(from || "/dashboard/practice");
   };
@@ -142,10 +177,11 @@ export default function QuizInfoPage() {
             size="lg"
             variant="outline"
             className="w-full text-base font-semibold"
-            onClick={() => router.push(`/quiz/${quizId}/trial_start`)}
+            onClick={handleStartTrialQuiz}
           >
             Start Trial Quiz
           </Button>
+
           {userId && (
             <Button
               size="lg"
@@ -257,13 +293,19 @@ export default function QuizInfoPage() {
         {/* Logo */}
         {quiz.image && (
           <div className="flex justify-center">
-            <img src={quiz.image} alt="Certification logo" className="w-28 h-28" />
+            <img
+              src={quiz.image}
+              alt="Certification logo"
+              className="w-28 h-28"
+            />
           </div>
         )}
 
         {/* Heading */}
         <h1 className="text-2xl font-semibold">{certification.name}</h1>
-        <p className="text-muted-foreground text-lg">Code: {certification.code}</p>
+        <p className="text-muted-foreground text-lg">
+          Code: {certification.code}
+        </p>
 
         {/* Description */}
         <p className="text-muted-foreground text-base whitespace-pre-line">
@@ -276,12 +318,15 @@ export default function QuizInfoPage() {
             <Clock className="w-4 h-4" /> {certification.duration_minutes} mins
           </div>
           <div className="flex items-center gap-1">
-            <FileText className="w-4 h-4" /> {certification.max_questions} questions
+            <FileText className="w-4 h-4" /> {certification.max_questions}{" "}
+            questions
           </div>
         </div>
 
         {/* 🔑 Subscription-based buttons */}
-        <div className="mt-4 w-full flex flex-col items-center">{renderButtons()}</div>
+        <div className="mt-4 w-full flex flex-col items-center">
+          {renderButtons()}
+        </div>
       </div>
     </section>
   );

@@ -26,6 +26,7 @@ export default function AccountPage() {
   const [activity, setActivity] = useState({ certifications: 0, minutes: 0 });
   const [joinedAt, setJoinedAt] = useState("");
   const [certifications, setCertifications] = useState([]);
+  const [subscription, setSubscription] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -126,6 +127,16 @@ export default function AccountPage() {
         certifications: (sessions ?? []).length,
         minutes: totalMinutes,
       });
+
+      // 🔑 fetch subscription
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("plan_id, certification_id, plans(name)")
+        .eq("user_id", authedUser.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      setSubscription(sub);
 
       setLoading(false);
     };
@@ -391,6 +402,25 @@ export default function AccountPage() {
 
             <div className="text-xs text-muted-foreground border-t pt-4">
               Joined on {joinedAt}
+            </div>
+            <div className="border-t pt-4 text-sm">
+              <h3 className="text-lg font-semibold mb-3">Subscription</h3>
+              {subscription ? (
+                <p className="text-muted-foreground mb-2">
+                  Plan: <strong>{subscription.plans?.name}</strong>
+                </p>
+              ) : (
+                <p className="text-muted-foreground mb-3">No active plan</p>
+              )}
+              {user && (
+                <Button
+                  size="sm"
+                  className="text-xs font-medium mt-1"
+                  onClick={() => router.push(`/pricing/${user.id}`)}
+                >
+                  {subscription ? "Manage" : "Upgrade"}
+                </Button>
+              )}
             </div>
           </div>
         </div>

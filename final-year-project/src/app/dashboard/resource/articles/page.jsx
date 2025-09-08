@@ -4,6 +4,16 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+const triggerStyle =
+  "text-sm px-4 py-2 border border-input rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring data-[state=open]:border-primary data-[state=open]:text-primary";
 
 export default function ArticlePage() {
   const supabase = createClient();
@@ -12,6 +22,18 @@ export default function ArticlePage() {
   const [subscription, setSubscription] = useState(null);
   const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // NEW: filters
+  const [certificationTypes, setCertificationTypes] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const [filters, setFilters] = useState({
+    certificationType: "",
+    topic: "",
+  });
+
+  const [selectedCertificationType, setSelectedCertificationType] =
+    useState("");
+  const [selectedTopic, setSelectedTopic] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,10 +55,40 @@ export default function ArticlePage() {
         setSubscription(sub);
       }
 
-      // ✅ fetch certs + articles
+      // ✅ fetch filter options
+      const [{ data: certTypes }, { data: topicsData }] = await Promise.all([
+        supabase.from("certification_type").select("id, name"),
+        supabase.from("topics").select("id, name"),
+      ]);
+
+      setCertificationTypes(certTypes || []);
+      setTopics(topicsData || []);
+
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, [supabase]);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setIsLoading(true);
+
+      let query = supabase.from("articles").select("*");
+
+      // ✅ filter by certificationType
+      if (filters.certificationType) {
+        query = query.eq("certification_type_id", filters.certificationType);
+      }
+
+      // ✅ filter by topic
+      if (filters.topic) {
+        query = query.eq("topic_id", filters.topic);
+      }
+
       const [{ data: certData }, { data: artData }] = await Promise.all([
         supabase.from("certifications").select("id, name"),
-        supabase.from("articles").select("*"),
+        query,
       ]);
 
       const transformed = (artData || []).map((article) => ({
@@ -59,8 +111,8 @@ export default function ArticlePage() {
       setIsLoading(false);
     };
 
-    fetchData();
-  }, [supabase]);
+    fetchArticles();
+  }, [filters, supabase]);
 
   // ✅ filtered view based on subscription
   const getVisibleArticles = () => {
@@ -79,6 +131,61 @@ export default function ArticlePage() {
     <section className="p-5 space-y-6">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-semibold">Articles</h2>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+        <Select
+          value={selectedCertificationType}
+          onValueChange={(value) => {
+            setFilters({ ...filters, certificationType: value });
+            setSelectedCertificationType(value);
+          }}
+        >
+          <SelectTrigger className={triggerStyle}>
+            <SelectValue placeholder="Certification Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {certificationTypes.map((ct) => (
+              <SelectItem key={ct.id} value={ct.id.toString()}>
+                {ct.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={selectedTopic}
+          onValueChange={(value) => {
+            setFilters({ ...filters, topic: value });
+            setSelectedTopic(value);
+          }}
+        >
+          <SelectTrigger className={triggerStyle}>
+            <SelectValue placeholder="Topic" />
+          </SelectTrigger>
+          <SelectContent>
+            {topics.map((tp) => (
+              <SelectItem key={tp.id} value={tp.id.toString()}>
+                {tp.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <button
+          className="text-sm text-primary hover:underline whitespace-nowrap"
+          onClick={() => {
+            setFilters({
+              certificationType: "",
+              topic: "",
+            });
+            setSelectedCertificationType("");
+            setSelectedTopic("");
+          }}
+        >
+          Clear filters
+        </button>
       </div>
 
       {isLoading ? (
