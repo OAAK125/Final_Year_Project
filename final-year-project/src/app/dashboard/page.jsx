@@ -26,7 +26,7 @@ export default function DashboardPage() {
     checkSession();
   }, [router, supabase]);
 
-  // ✅ Verify Paystack payment on redirect
+  //  Verify Paystack payment on redirect
   useEffect(() => {
     const verifyPayment = async () => {
       const reference = new URLSearchParams(window.location.search).get(
@@ -43,9 +43,9 @@ export default function DashboardPage() {
 
         const data = await res.json();
         if (data.success) {
-          alert("🎉 Payment successful! Your subscription is now active.");
+          alert(" Payment successful! Your subscription is now active.");
 
-          // 🔑 Refresh subscription from Supabase
+          // Refresh subscription from Supabase
           const {
             data: { user },
           } = await supabase.auth.getUser();
