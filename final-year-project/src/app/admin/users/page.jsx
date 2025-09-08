@@ -55,159 +55,159 @@ export default function UserManagementPage() {
     filterUsers();
   }, [users, searchTerm, roleFilter, statusFilter]);
 
-const fetchUsers = async () => {
-  try {
-    setIsLoading(true);
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, avatar_url, role, status, created_at, updated_at")
-      .order("created_at", { ascending: false });
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url, role, status, created_at, updated_at")
+        .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching users:", error);
+      if (error) {
+        console.error("Error fetching users:", error);
+        toast.error("Failed to load users");
+        return;
+      }
+
+      // Transform the data to match your schema
+      const formattedUsers = data.map((profile) => ({
+        id: profile.id,
+        email: profile.email || "No email",
+        role: profile.role || "student",
+        status: profile.status || "active",
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
+        profile: {
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+        },
+      }));
+
+      setUsers(formattedUsers);
+    } catch (error) {
+      console.error("Error:", error);
       toast.error("Failed to load users");
-      return;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterUsers = () => {
+    let filtered = users;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(user =>
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.profile?.full_name && user.profile.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
     }
 
-    // Transform the data to match your schema
-    const formattedUsers = data.map((profile) => ({
-      id: profile.id,
-      email: profile.email || "No email",
-      role: profile.role || "student",
-      status: profile.status || "active",
-      created_at: profile.created_at,
-      updated_at: profile.updated_at,
-      profile: {
-        full_name: profile.full_name,
-        avatar_url: profile.avatar_url,
-      },
-    }));
+    // Apply role filter
+    if (roleFilter !== "all") {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
 
-    setUsers(formattedUsers);
-  } catch (error) {
-    console.error("Error:", error);
-    toast.error("Failed to load users");
-  } finally {
-    setIsLoading(false);
-  }
-};
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(user => user.status === statusFilter);
+    }
 
-const filterUsers = () => {
-  let filtered = users;
-
-  // Apply search filter
-  if (searchTerm) {
-    filtered = filtered.filter(user =>
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.profile?.full_name && user.profile.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    setFilteredUsers(filtered);
   }
 
-  // Apply role filter
-  if (roleFilter !== "all") {
-    filtered = filtered.filter(user => user.role === roleFilter);
-  }
+  const updateUserRole = async (userId, newRole) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ role: newRole, updated_at: new Date().toISOString() })
+        .eq("id", userId);
 
-  // Apply status filter
-  if (statusFilter !== "all") {
-    filtered = filtered.filter(user => user.status === statusFilter);
-  }
+      if (error) {
+        console.error("Error updating user role:", error);
+        toast.error("Failed to update user role");
+        return;
+      }
 
-  setFilteredUsers(filtered);
-};
-
-const updateUserRole = async (userId, newRole) => {
-  try {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ role: newRole, updated_at: new Date().toISOString() })
-      .eq("id", userId);
-
-    if (error) {
-      console.error("Error updating user role:", error);
+      toast.success("User role updated successfully");
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error("Error:", error);
       toast.error("Failed to update user role");
-      return;
     }
+  };
 
-    toast.success("User role updated successfully");
-    fetchUsers(); // Refresh the user list
-  } catch (error) {
-    console.error("Error:", error);
-    toast.error("Failed to update user role");
-  }
-};
+  const updateUserStatus = async (userId, newStatus) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq("id", userId);
 
-const updateUserStatus = async (userId, newStatus) => {
-  try {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
-      .eq("id", userId);
+      if (error) {
+        console.error("Error updating user status:", error);
+        toast.error("Failed to update user status");
+        return;
+      }
 
-    if (error) {
-      console.error("Error updating user status:", error);
+      toast.success(`User ${newStatus === "active" ? "activated" : "suspended"} successfully`);
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error("Error:", error);
       toast.error("Failed to update user status");
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
       return;
     }
 
-    toast.success(`User ${newStatus === "active" ? "activated" : "suspended"} successfully`);
-    fetchUsers(); // Refresh the user list
-  } catch (error) {
-    console.error("Error:", error);
-    toast.error("Failed to update user status");
-  }
-};
+    try {
+      // First delete from auth.users (this will cascade to profiles due to foreign key with on delete CASCADE)
+      const { error } = await supabase.auth.admin.deleteUser(userId);
 
-const deleteUser = async (userId) => {
-  if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-    return;
-  }
+      if (error) {
+        console.error("Error deleting user:", error);
+        toast.error("Failed to delete user");
+        return;
+      }
 
-  try {
-    // First delete from auth.users (this will cascade to profiles due to foreign key with on delete CASCADE)
-    const { error } = await supabase.auth.admin.deleteUser(userId);
-
-    if (error) {
-      console.error("Error deleting user:", error);
+      toast.success("User deleted successfully");
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error("Error:", error);
       toast.error("Failed to delete user");
-      return;
     }
+  };
 
-    toast.success("User deleted successfully");
-    fetchUsers(); // Refresh the user list
-  } catch (error) {
-    console.error("Error:", error);
-    toast.error("Failed to delete user");
-  }
-};
+  const getUserName = (user) => {
+    if (user.profile?.full_name) {
+      return user.profile.full_name;
+    }
+    return user.email || "Unknown User";
+  };
 
-const getUserName = (user) => {
-  if (user.profile?.full_name) {
-    return user.profile.full_name;
-  }
-  return user.email || "Unknown User";
-};
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-};
+  const getRoleBadgeVariant = (role) => {
+    switch (role) {
+      case "admin": return "destructive";
+      case "contributor": return "default";
+      case "student": return "secondary";
+      default: return "outline";
+    }
+  };
 
-const getRoleBadgeVariant = (role) => {
-  switch (role) {
-    case "admin": return "destructive";
-    case "contributor": return "default";
-    case "student": return "secondary";
-    default: return "outline";
-  }
-};
-
-const getStatusBadgeVariant = (status) => {
-  return status === "active" ? "default" : "outline";
-};
+  const getStatusBadgeVariant = (status) => {
+    return status === "active" ? "default" : "outline";
+  };
 
   if (isLoading) {
     return (
@@ -329,7 +329,7 @@ const getStatusBadgeVariant = (status) => {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          
+
                           {/* Role Management */}
                           <DropdownMenuLabel className="text-xs text-muted-foreground">
                             Change Role
@@ -349,9 +349,9 @@ const getStatusBadgeVariant = (status) => {
                               Make User
                             </DropdownMenuItem>
                           )}
-                          
+
                           <DropdownMenuSeparator />
-                          
+
                           {/* Status Management */}
                           <DropdownMenuLabel className="text-xs text-muted-foreground">
                             Change Status
@@ -367,9 +367,9 @@ const getStatusBadgeVariant = (status) => {
                               Activate User
                             </DropdownMenuItem>
                           )}
-                          
+
                           <DropdownMenuSeparator />
-                          
+
                           {/* Delete Action */}
                           <DropdownMenuItem
                             className="text-destructive"
