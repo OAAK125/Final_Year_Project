@@ -323,7 +323,7 @@ export default function QuizInfoPage() {
           </div>
         </div>
 
-        {/* 🔑 Subscription-based buttons */}
+        {/* Subscription-based buttons */}
         <div className="mt-4 w-full flex flex-col items-center">
           {renderButtons()}
         </div>

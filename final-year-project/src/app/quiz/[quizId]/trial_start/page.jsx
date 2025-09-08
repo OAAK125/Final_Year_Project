@@ -54,7 +54,7 @@ export default function TrialQuestionPage() {
     initialize();
   }, [router, supabase, sessionId]);
 
-  // 2. Fetch Quiz & Questions (trial_questions)
+  // Fetch Quiz & Questions (trial_questions)
   useEffect(() => {
     const fetchQuiz = async () => {
       const { data: cert } = await supabase
@@ -102,7 +102,7 @@ export default function TrialQuestionPage() {
     if (quizId && sessionId) fetchQuiz();
   }, [quizId, sessionId, supabase]);
 
-  // 3. Countdown Timer
+  // Countdown Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));

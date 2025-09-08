@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -17,6 +18,7 @@ const triggerStyle =
 
 export default function VideoPage() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [certifications, setCertifications] = useState([]);
   const [videos, setVideos] = useState([]);
@@ -24,7 +26,7 @@ export default function VideoPage() {
   const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🔑 Filters
+  // Filters
   const [certificationTypes, setCertificationTypes] = useState([]);
   const [topics, setTopics] = useState([]);
   const [filters, setFilters] = useState({
@@ -40,7 +42,7 @@ export default function VideoPage() {
     const fetchData = async () => {
       setIsLoading(true);
 
-      // ✅ fetch user + subscription
+      // fetch user + subscription
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -56,7 +58,7 @@ export default function VideoPage() {
         setSubscription(sub);
       }
 
-      // ✅ fetch filter options
+      // fetch filter options
       const [{ data: certTypes }, { data: topicsData }] = await Promise.all([
         supabase.from("certification_type").select("id, name"),
         supabase.from("topics").select("id, name"),
@@ -114,7 +116,7 @@ export default function VideoPage() {
     fetchVideos();
   }, [filters, supabase]);
 
-  // ✅ filter by subscription
+  // filter by subscription
   const getVisibleVideos = () => {
     if (!subscription || subscription.plans?.name === "Free") return [];
     if (subscription.plans?.name === "Standard") {
@@ -199,7 +201,7 @@ export default function VideoPage() {
             <Button
               variant="default"
               className="text-base font-semibold"
-              onClick={() => (window.location.href = `/pricing/${userId}`)}
+              onClick={() => router.push(`/pricing/${userId}`)}
             >
               Pay to View
             </Button>

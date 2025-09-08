@@ -35,7 +35,7 @@ const TrialQuizResultsPage = () => {
 
       const userId = user.id;
 
-      // ✅ trial session check
+      // trial session check
       const { data: sessionData, error: sessionError } = await supabase
         .from("trial_quiz_sessions")
         .select("id, ended_at, user_id")
@@ -48,7 +48,7 @@ const TrialQuizResultsPage = () => {
         return;
       }
 
-      // ✅ profile / legacy profile check
+      // profile / legacy profile check
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name, avatar_url")
@@ -76,7 +76,7 @@ const TrialQuizResultsPage = () => {
         user.user_metadata.avatar_url ||
         "";
 
-      // ✅ answers from trial_answers + trial_questions
+      // answers from trial_answers + trial_questions
       const { data: rows } = await supabase
         .from("trial_answers")
         .select(
@@ -100,7 +100,7 @@ const TrialQuizResultsPage = () => {
       const correctCount = (rows || []).filter((r) => !!r.is_correct).length;
       const score = total > 0 ? Math.round((correctCount / total) * 100) : 0;
 
-      // ✅ update score in trial_quiz_sessions
+      // update score in trial_quiz_sessions
       await supabase
         .from("trial_quiz_sessions")
         .update({ score })

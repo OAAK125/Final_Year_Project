@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -17,13 +18,14 @@ const triggerStyle =
 
 export default function ArticlePage() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [articles, setArticles] = useState([]);
   const [subscription, setSubscription] = useState(null);
   const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // NEW: filters
+  // filters
   const [certificationTypes, setCertificationTypes] = useState([]);
   const [topics, setTopics] = useState([]);
   const [filters, setFilters] = useState({
@@ -39,7 +41,7 @@ export default function ArticlePage() {
     const fetchData = async () => {
       setIsLoading(true);
 
-      // ✅ fetch user + subscription
+      // fetch user + subscription
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -55,7 +57,7 @@ export default function ArticlePage() {
         setSubscription(sub);
       }
 
-      // ✅ fetch filter options
+      // fetch filter options
       const [{ data: certTypes }, { data: topicsData }] = await Promise.all([
         supabase.from("certification_type").select("id, name"),
         supabase.from("topics").select("id, name"),
@@ -76,12 +78,12 @@ export default function ArticlePage() {
 
       let query = supabase.from("articles").select("*");
 
-      // ✅ filter by certificationType
+      // filter by certificationType
       if (filters.certificationType) {
         query = query.eq("certification_type_id", filters.certificationType);
       }
 
-      // ✅ filter by topic
+      // filter by topic
       if (filters.topic) {
         query = query.eq("topic_id", filters.topic);
       }
@@ -114,7 +116,7 @@ export default function ArticlePage() {
     fetchArticles();
   }, [filters, supabase]);
 
-  // ✅ filtered view based on subscription
+  // filtered view based on subscription
   const getVisibleArticles = () => {
     if (!subscription || subscription.plans?.name === "Free") return []; // free sees nothing
     if (subscription.plans?.name === "Standard") {
@@ -199,7 +201,7 @@ export default function ArticlePage() {
             <Button
               variant="default"
               className="text-base font-semibold"
-              onClick={() => (window.location.href = `/pricing/${userId}`)}
+              onClick={() => router.push(`/pricing/${userId}`)}
             >
               Pay to View
             </Button>

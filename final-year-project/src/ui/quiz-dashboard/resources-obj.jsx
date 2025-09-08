@@ -56,7 +56,7 @@ export default function ResourcesObjPage() {
         target_url: obj.target_url,
       }));
 
-      // 🔑 If Standard, reorder so their cert objectives appear first
+      // If Standard, reorder so their cert objectives appear first
       if (sub?.plans?.name === "Standard" && sub.certification_id) {
         transformed = [
           ...transformed.filter((o) => o.certificationId === sub.certification_id),

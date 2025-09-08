@@ -1,7 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Check } from 'lucide-react'
-import Link from 'next/link'
 
 export default function Pricing() {
     return (
@@ -61,7 +59,7 @@ export default function Pricing() {
                                         'Unlimited Practice Tests for that Cert',
                                         'Curated list of Resources for that Cert',
                                         'Question Flagging for Review',
-                                        'Chance to be a contributor'
+                                    
                                     ].map((item, index) => (
                                         <li key={index} className="flex items-center gap-2">
                                             <Check className="size-3" />

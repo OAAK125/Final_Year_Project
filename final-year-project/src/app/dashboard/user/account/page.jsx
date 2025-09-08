@@ -128,7 +128,7 @@ export default function AccountPage() {
         minutes: totalMinutes,
       });
 
-      // 🔑 fetch subscription
+      // fetch subscription
       const { data: sub } = await supabase
         .from("subscriptions")
         .select("plan_id, certification_id, plans(name)")

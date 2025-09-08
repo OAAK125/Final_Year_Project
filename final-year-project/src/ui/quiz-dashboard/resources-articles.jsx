@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
@@ -9,6 +10,7 @@ import Link from "next/link";
 
 export default function ResourceArticles() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [certifications, setCertifications] = useState([]);
   const [articles, setArticles] = useState([]);

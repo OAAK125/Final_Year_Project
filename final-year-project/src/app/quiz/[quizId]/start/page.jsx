@@ -42,7 +42,6 @@ export default function QuizQuestionPage() {
   const totalQuestions = questions.length;
   const correctLetter = question?.correct_answer?.[0];
 
-  // 1. Initialization
   useEffect(() => {
     const initialize = async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -61,7 +60,7 @@ export default function QuizQuestionPage() {
     initialize();
   }, [router, supabase]);
 
-  // 2. Fetch Quiz & Questions
+  // Fetch Quiz & Questions
   useEffect(() => {
     const fetchQuiz = async () => {
       const { data: cert } = await supabase
@@ -81,7 +80,6 @@ export default function QuizQuestionPage() {
 
       if (!allQuestions?.length) return;
 
-      // --------- ONLY CHANGE: pick a random set of questions ----------
       const randomSample = (arr, n) => {
         const result = [];
         const used = new Set();
@@ -106,7 +104,6 @@ export default function QuizQuestionPage() {
       };
 
       const selectedQuestions = randomSample(allQuestions, cert.max_questions);
-      // ---------------------------------------------------------------
 
       setQuestions(selectedQuestions);
       setProgress(100 / selectedQuestions.length);
@@ -116,7 +113,7 @@ export default function QuizQuestionPage() {
     if (quizId && sessionId) fetchQuiz();
   }, [quizId, sessionId, supabase]);
 
-  // 3. Countdown Timer
+  // Countdown Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
@@ -124,7 +121,7 @@ export default function QuizQuestionPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 4. Fetch Flag Status
+  // Fetch Flag Status
   useEffect(() => {
     const checkFlagged = async () => {
       if (!user || !question) return;
@@ -141,7 +138,7 @@ export default function QuizQuestionPage() {
     checkFlagged();
   }, [user, question, supabase]);
 
-  // 5. Toggle Flag Handler
+  // Toggle Flag Handler
   const toggleFlag = async () => {
     if (!user || !question || !sessionId) return;
 
@@ -170,8 +167,8 @@ export default function QuizQuestionPage() {
       await supabase.from("answers").upsert({
         user_id: user.id,
         question_id: question.id,
-        selected_answer: null, // <- store NULL when user doesn't know
-        is_correct: false, // or set to null if your schema allows
+        selected_answer: null, // store NULL when user doesn't know
+        is_correct: false,
         quiz_session_id: sessionId,
       });
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ import {
 import { createClient } from "@/utils/supabase/client";
 
 export default function PersonalizeBottom() {
+  const router = useRouter();
   const supabase = createClient();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +96,8 @@ export default function PersonalizeBottom() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="text-sm max-w-xs">
-                These are the questions you flagged during your practice. Click to review them.
+                These are the questions you flagged during your practice. Click
+                to review them.
               </PopoverContent>
             </Popover>
           </div>
@@ -105,7 +108,7 @@ export default function PersonalizeBottom() {
               <Button
                 variant="default"
                 className="w-1/2 font-semibold"
-                onClick={() => window.location.href = `/pricing/${userId}`}
+                onClick={() => router.push(`/pricing/${userId}`)}
               >
                 Pay to View
               </Button>
@@ -115,7 +118,9 @@ export default function PersonalizeBottom() {
           {/* Standard + All-Access: show table */}
           {(plan === "Standard" || plan === "All-Access") && (
             <Table>
-              <TableCaption>A list of questions you have flagged for review</TableCaption>
+              <TableCaption>
+                A list of questions you have flagged for review
+              </TableCaption>
               <TableHeader>
                 <TableRow>
                   <TableHead>Certificate</TableHead>
@@ -160,7 +165,9 @@ export default function PersonalizeBottom() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Flagged Question</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Flagged Question
+                              </AlertDialogTitle>
                               <AlertDialogDescription className="space-y-4">
                                 <div>
                                   <strong>Question:</strong>{" "}
@@ -169,9 +176,11 @@ export default function PersonalizeBottom() {
                                 <div>
                                   <strong>Options:</strong>
                                   <ul className="list-disc list-inside">
-                                    {item.questions?.options?.map((opt, idx) => (
-                                      <li key={idx}>{opt}</li>
-                                    ))}
+                                    {item.questions?.options?.map(
+                                      (opt, idx) => (
+                                        <li key={idx}>{opt}</li>
+                                      )
+                                    )}
                                   </ul>
                                 </div>
                                 <div>

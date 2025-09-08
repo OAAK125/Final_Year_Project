@@ -44,7 +44,7 @@ const PracticePage = () => {
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedArrangement, setSelectedArrangement] = useState("");
 
-  // 🔑 NEW: store subscription
+  // store subscription
   const [subscription, setSubscription] = useState(null);
 
   const fetchBookmarks = async () => {
@@ -64,7 +64,7 @@ const PracticePage = () => {
     }
   };
 
-  // 🔑 NEW: fetch subscription info
+  // fetch subscription info
   const fetchSubscription = async () => {
     const {
       data: { user },
@@ -123,7 +123,7 @@ const PracticePage = () => {
 
     fetchFilters();
     fetchBookmarks();
-    fetchSubscription(); // 🔑 fetch subscription on mount
+    fetchSubscription(); 
   }, []);
 
   useEffect(() => {
@@ -173,8 +173,11 @@ const PracticePage = () => {
         };
       });
 
-      // 🔑 sort based on plan
-      if (subscription?.plans?.name === "Standard" && subscription.certification_id) {
+      // sort based on plan
+      if (
+        subscription?.plans?.name === "Standard" &&
+        subscription.certification_id
+      ) {
         transformed.sort((a, b) => {
           if (a.id === subscription.certification_id) return -1;
           if (b.id === subscription.certification_id) return 1;

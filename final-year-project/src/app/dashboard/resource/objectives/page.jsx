@@ -16,7 +16,7 @@ export default function ObjectivesPage() {
     const fetchData = async () => {
       setIsLoading(true);
 
-      // ✅ Fetch user subscription
+      // Fetch user subscription
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -31,7 +31,7 @@ export default function ObjectivesPage() {
         setSubscription(sub);
       }
 
-      // ✅ Fetch certs + objectives
+      // Fetch certs + objectives
       const [{ data: certData, error: certError }, { data: objData, error: objError }] =
         await Promise.all([
           supabase.from("certifications").select("id, name"),
@@ -54,7 +54,7 @@ export default function ObjectivesPage() {
         target_url: obj.target_url,
       }));
 
-      // ✅ If Standard: move their certification’s objectives to the top
+      // If Standard: move their certification’s objectives to the top
       let reordered = transformed;
       if (subscription?.plans?.name === "Standard" && subscription.certification_id) {
         reordered = [

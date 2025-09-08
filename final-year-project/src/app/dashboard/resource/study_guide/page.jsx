@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -17,6 +18,7 @@ const triggerStyle =
 
 export default function GuidePage() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [certifications, setCertifications] = useState([]);
   const [guides, setGuides] = useState([]);
@@ -24,7 +26,7 @@ export default function GuidePage() {
   const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🔑 Filters
+  // Filters
   const [certificationTypes, setCertificationTypes] = useState([]);
   const [topics, setTopics] = useState([]);
   const [filters, setFilters] = useState({
@@ -40,7 +42,7 @@ export default function GuidePage() {
     const fetchData = async () => {
       setIsLoading(true);
 
-      // ✅ fetch user + subscription
+      // fetch user + subscription
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -56,7 +58,7 @@ export default function GuidePage() {
         setSubscription(sub);
       }
 
-      // ✅ fetch filter options
+      // fetch filter options
       const [{ data: certTypes }, { data: topicsData }] = await Promise.all([
         supabase.from("certification_type").select("id, name"),
         supabase.from("topics").select("id, name"),
@@ -77,12 +79,12 @@ export default function GuidePage() {
 
       let query = supabase.from("study_guides").select("*");
 
-      // ✅ filter by certificationType
+      // filter by certificationType
       if (filters.certificationType) {
         query = query.eq("certification_type_id", filters.certificationType);
       }
 
-      // ✅ filter by topic
+      // filter by topic
       if (filters.topic) {
         query = query.eq("topic_id", filters.topic);
       }
@@ -117,7 +119,7 @@ export default function GuidePage() {
     fetchGuides();
   }, [filters, supabase]);
 
-  // ✅ filtered view based on subscription
+  // filtered view based on subscription
   const getVisibleGuides = () => {
     if (!subscription || subscription.plans?.name === "Free") return []; // free sees nothing
     if (subscription.plans?.name === "Standard") {
@@ -202,7 +204,7 @@ export default function GuidePage() {
             <Button
               variant="default"
               className="text-base font-semibold"
-              onClick={() => (window.location.href = `/pricing/${userId}`)}
+              onClick={() => router.push(`/pricing/${userId}`)}
             >
               Pay to View
             </Button>

@@ -100,7 +100,7 @@ export default function AuthenticationSignupPage() {
       provider,
     });
 
-    // ✅ Ensure user has Free subscription
+    // Ensure user has Free subscription
     await ensureFreeSubscription(loggedInUser.id);
 
     router.push("/dashboard");

@@ -110,7 +110,7 @@ export default function PersonalizeTop() {
           Tailor your quiz based on your goals and preferences.
         </p>
 
-        {/* Free & Standard users: only Pay button */}
+       
         {(!subscription || plan === "Free" || plan === "Standard") && userId && (
           <Button
             className="w-full sm:w-auto"
