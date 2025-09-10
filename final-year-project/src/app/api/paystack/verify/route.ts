@@ -4,8 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // service role required for server updates
+  process.env.NEXT_PUBLIC_SUPABASE_URL!, // ✅ ensure this is correct
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // ✅ must be service role
 );
 
 export async function POST(req: Request) {
@@ -13,22 +13,41 @@ export async function POST(req: Request) {
     const { reference } = await req.json();
     console.info("🔵 Received verify request for reference:", reference);
 
-    // Verify with Paystack
-    const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-      headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
-    });
+    // ✅ Verify with Paystack
+    const verifyRes = await fetch(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
+      }
+    );
 
     const json = await verifyRes.json();
-    console.info("🔵 Full Verify Response:", JSON.stringify(json, null, 2));
+    console.info("🔵 Full Paystack Verify Response:", JSON.stringify(json, null, 2));
 
-    if (!verifyRes.ok || json.data.status !== "success") {
+    // ✅ Safer status check
+    if (!json.status || json.data?.status !== "success") {
+      console.error("❌ Payment verification failed:", {
+        httpOk: verifyRes.ok,
+        paystackStatus: json.status,
+        dataStatus: json.data?.status,
+        gatewayResponse: json.data?.gateway_response,
+      });
+
       return NextResponse.json(
         { error: "Payment not successful", details: json },
         { status: 400 }
       );
     }
 
-    const { user_id, plan_id, certification_id } = json.data.metadata || {};
+    // ✅ Extract metadata (must be passed when initializing the transaction)
+    const { user_id, plan_id, certification_id } = json.data?.metadata || {};
+    if (!user_id || !plan_id) {
+      console.error("❌ Missing metadata:", json.data?.metadata);
+      return NextResponse.json(
+        { error: "Invalid transaction metadata", details: json.data?.metadata },
+        { status: 400 }
+      );
+    }
 
     // ✅ Lookup plan details
     const { data: plan, error: planError } = await supabase
@@ -42,7 +61,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Plan not found" }, { status: 400 });
     }
 
-    // ✅ Upsert subscription with user + plan
+    // ✅ Upsert subscription (ensure subscriptions.user_id is UNIQUE in DB)
     const { data: sub, error: subError } = await supabase
       .from("subscriptions")
       .upsert(
@@ -60,14 +79,17 @@ export async function POST(req: Request) {
 
     if (subError) {
       console.error("❌ DB error while updating subscription:", subError);
-      return NextResponse.json({ error: "Failed to update subscription" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to update subscription" },
+        { status: 500 }
+      );
     }
 
-    console.info("✅ Subscription updated:", sub);
+    console.info("✅ Subscription updated successfully:", sub);
 
     return NextResponse.json({ status: "success", subscription: sub });
   } catch (err: any) {
-    console.error("Verify error:", err);
+    console.error("❌ Verify route error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

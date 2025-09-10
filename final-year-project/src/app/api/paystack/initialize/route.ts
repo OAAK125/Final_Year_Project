@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Stringify metadata for Paystack
+    // ✅ Pass metadata as object (not stringified)
     const paystackRes = await fetch(
       "https://api.paystack.co/transaction/initialize",
       {
@@ -67,11 +67,11 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           email: user.email,
           amount: plan.price * 100,
-          metadata: JSON.stringify({
+          metadata: {
             user_id: user.id,
             plan_id,
             certification_id: plan.name === "Standard" ? certification_id : null,
-          }),
+          },
           callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
         }),
       }
