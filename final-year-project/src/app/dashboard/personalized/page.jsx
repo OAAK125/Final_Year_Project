@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import PersonalizeTop from "@/ui/quiz-dashboard/personalize-top";
 import PersonalizeBottom from "@/ui/quiz-dashboard/personalize-bottom";
+import PersonalizeMiddle from "@/ui/quiz-dashboard/personalize-middle";
 import { Loader2 } from "lucide-react";
 
 const PersonalizedPage = () => {
@@ -36,6 +37,7 @@ const PersonalizedPage = () => {
       ) : (
         <>
           <PersonalizeTop />
+          <PersonalizeMiddle />
           <PersonalizeBottom />
         </>
       )}
