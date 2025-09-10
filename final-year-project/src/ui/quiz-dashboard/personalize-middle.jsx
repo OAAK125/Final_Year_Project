@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Info } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -10,6 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import dynamic from "next/dynamic";
+import { createClient } from "@/utils/supabase/client";
 
 // Dynamic imports
 const UserProgressLineChart = dynamic(() => import("@/ui/quiz-dashboard/line-chart"));
@@ -18,12 +19,62 @@ const SubTopicPerformanceChart = dynamic(
   { ssr: false }
 );
 
-export default function PersonalizeMiddle({ subscriptionPlan }) {
+// ✅ Plan IDs (centralize in /constants/planIds.js ideally)
+const FREE_PLAN_ID = "c000440f-2269-4e17-b445-e1c4510504d8";
+const STANDARD_PLAN_ID = "5623589a-885c-4ac1-8842-12247cadc89e";
+const FULL_ACCESS_PLAN_ID = "3ed77a5b-3fde-4bf8-ae4d-7952ec8197b6";
+
+export default function PersonalizeMiddle() {
   const router = useRouter();
+  const supabase = createClient();
+
+  const [subscription, setSubscription] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [hasBarChartData, setHasBarChartData] = useState(true);
 
-  const isPaid =
-    subscriptionPlan === "standard" || subscriptionPlan === "full_access";
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      setLoading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      setUserId(user.id);
+
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("plan_id")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      setSubscription(sub);
+      setLoading(false);
+    };
+
+    fetchSubscription();
+  }, [supabase]);
+
+  const planId = subscription?.plan_id;
+  const isFree = !subscription || planId === FREE_PLAN_ID;
+  const isStandard = planId === STANDARD_PLAN_ID;
+  const isFullAccess = planId === FULL_ACCESS_PLAN_ID;
+  const isPaid = isStandard || isFullAccess;
+
+  if (loading) {
+    return (
+      <div className="min-h-[300px] flex flex-col items-center justify-center text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+        <p className="text-sm text-gray-600">Loading dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mx-4">
@@ -48,9 +99,14 @@ export default function PersonalizeMiddle({ subscriptionPlan }) {
           <UserProgressLineChart />
         ) : (
           <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-            <Button onClick={() => router.push("/pricing")}>
-              Pay to View
-            </Button>
+            {userId && (
+              <Button
+                onClick={() => router.push(`/pricing/${userId}`)}
+                className="text-base font-semibold"
+              >
+                Pay to View
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -89,9 +145,14 @@ export default function PersonalizeMiddle({ subscriptionPlan }) {
           </>
         ) : (
           <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-            <Button onClick={() => router.push("/pricing")}>
-              Pay to View
-            </Button>
+            {userId && (
+              <Button
+                onClick={() => router.push(`/pricing/${userId}`)}
+                className="text-base font-semibold"
+              >
+                Pay to View
+              </Button>
+            )}
           </div>
         )}
       </div>

@@ -30,6 +30,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { createClient } from "@/utils/supabase/client";
 
+// ✅ Plan IDs
+const FREE_PLAN_ID = "c000440f-2269-4e17-b445-e1c4510504d8";
+const STANDARD_PLAN_ID = "5623589a-885c-4ac1-8842-12247cadc89e";
+const FULL_ACCESS_PLAN_ID = "3ed77a5b-3fde-4bf8-ae4d-7952ec8197b6";
+
 export default function PersonalizeBottom() {
   const router = useRouter();
   const supabase = createClient();
@@ -50,10 +55,10 @@ export default function PersonalizeBottom() {
 
       setUserId(user.id);
 
-      // fetch subscription
+      // ✅ fetch subscription using plan_id only
       const { data: sub } = await supabase
         .from("subscriptions")
-        .select("plan_id, plans(name)")
+        .select("plan_id")
         .eq("user_id", user.id)
         .eq("status", "active")
         .maybeSingle();
@@ -80,7 +85,11 @@ export default function PersonalizeBottom() {
     setQuestions((prev) => prev.filter((q) => q.id !== id));
   };
 
-  const plan = subscription?.plans?.name;
+  const planId = subscription?.plan_id;
+
+  const isFree = !subscription || planId === FREE_PLAN_ID;
+  const isStandard = planId === STANDARD_PLAN_ID;
+  const isFullAccess = planId === FULL_ACCESS_PLAN_ID;
 
   return (
     <div className="mx-5">
@@ -103,7 +112,7 @@ export default function PersonalizeBottom() {
           </div>
 
           {/* Free users: show pay button instead of table */}
-          {(!subscription || plan === "Free") && userId && (
+          {isFree && userId && (
             <div className="text-center py-6">
               <Button
                 variant="default"
@@ -115,8 +124,8 @@ export default function PersonalizeBottom() {
             </div>
           )}
 
-          {/* Standard + All-Access: show table */}
-          {(plan === "Standard" || plan === "All-Access") && (
+          {/* Standard + Full-Access: show table */}
+          {(isStandard || isFullAccess) && (
             <Table>
               <TableCaption>
                 A list of questions you have flagged for review
@@ -160,7 +169,8 @@ export default function PersonalizeBottom() {
                               variant="link"
                               className="p-0 h-auto text-left"
                             >
-                              {item.questions?.question_text || "View Question"}
+                              {item.questions?.question_text ||
+                                "View Question"}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -195,7 +205,9 @@ export default function PersonalizeBottom() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Close</AlertDialogCancel>
-                              <Button onClick={() => markAsUnderstood(item.id)}>
+                              <Button
+                                onClick={() => markAsUnderstood(item.id)}
+                              >
                                 Mark as Understood
                               </Button>
                             </AlertDialogFooter>

@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
-import Link from "next/link";
+
+// ✅ Centralized plan IDs
+const FREE_PLAN_ID = "c000440f-2269-4e17-b445-e1c4510504d8";
+const STANDARD_PLAN_ID = "5623589a-885c-4ac1-8842-12247cadc89e";
+const FULL_ACCESS_PLAN_ID = "3ed77a5b-3fde-4bf8-ae4d-7952ec8197b6";
 
 export default function ResourceArticles() {
   const supabase = createClient();
@@ -22,7 +24,7 @@ export default function ResourceArticles() {
     const fetchData = async () => {
       setIsLoading(true);
 
-      // Fetch user + subscription + certifications + articles
+      // Fetch certifications + articles + user
       const [{ data: certData }, { data: artData }, { data: userData }] =
         await Promise.all([
           supabase.from("certifications").select("id, name"),
@@ -37,7 +39,7 @@ export default function ResourceArticles() {
 
         const { data: sub } = await supabase
           .from("subscriptions")
-          .select("plan_id, certification_id, plans(name)")
+          .select("plan_id, certification_id")
           .eq("user_id", userData.user.id)
           .eq("status", "active")
           .maybeSingle();
@@ -51,7 +53,8 @@ export default function ResourceArticles() {
         description: article.short_description || "No description provided.",
         certificationId: article.certification_id,
         certificationName:
-          certData?.find((c) => c.id === article.certification_id)?.name || "Unknown",
+          certData?.find((c) => c.id === article.certification_id)?.name ||
+          "Unknown",
         image: article.image_url || "/assets/default-article.png",
         target_url: article.url,
         author: article.author || "Unknown Author",
@@ -75,19 +78,19 @@ export default function ResourceArticles() {
     );
   }
 
-  const plan = subscription?.plans?.name;
-
-  // Decide which articles to show
+  // ✅ Decide which articles to show using plan_id
   let visibleArticles = [];
-  if (!subscription || plan === "Free") {
-    visibleArticles = []; // hide all articles
-  } else if (plan === "Standard") {
+  if (!subscription) {
+    visibleArticles = [];
+  } else if (subscription.plan_id === FREE_PLAN_ID) {
+    visibleArticles = [];
+  } else if (subscription.plan_id === STANDARD_PLAN_ID) {
     if (subscription.certification_id) {
       visibleArticles = articles.filter(
         (a) => a.certificationId === subscription.certification_id
       );
     }
-  } else if (plan === "All-Access") {
+  } else if (subscription.plan_id === FULL_ACCESS_PLAN_ID) {
     visibleArticles = articles;
   }
 
@@ -106,7 +109,7 @@ export default function ResourceArticles() {
       </div>
 
       {/* Free users: show only pay button */}
-      {(!subscription || plan === "Free") ? (
+      {!subscription || subscription.plan_id === FREE_PLAN_ID ? (
         <div className="flex justify-center">
           {userId && (
             <Button

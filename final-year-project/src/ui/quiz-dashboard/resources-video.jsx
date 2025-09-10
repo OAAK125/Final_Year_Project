@@ -5,6 +5,11 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
+// ✅ Centralized plan IDs
+const FREE_PLAN_ID = "c000440f-2269-4e17-b445-e1c4510504d8";
+const STANDARD_PLAN_ID = "5623589a-885c-4ac1-8842-12247cadc89e";
+const FULL_ACCESS_PLAN_ID = "3ed77a5b-3fde-4bf8-ae4d-7952ec8197b6";
+
 export default function ResourceVideo() {
   const supabase = createClient();
   const router = useRouter();
@@ -39,7 +44,7 @@ export default function ResourceVideo() {
 
         const { data: sub } = await supabase
           .from("subscriptions")
-          .select("plan_id, certification_id, plans(name)")
+          .select("plan_id, certification_id")
           .eq("user_id", userData.user.id)
           .eq("status", "active")
           .maybeSingle();
@@ -75,19 +80,19 @@ export default function ResourceVideo() {
     );
   }
 
-  const plan = subscription?.plans?.name;
-
-  // Decide which videos to show
+  // ✅ Decide which videos to show using plan_id
   let visibleVideos = [];
-  if (!subscription || plan === "Free") {
-    visibleVideos = []; // hide all
-  } else if (plan === "Standard") {
+  if (!subscription) {
+    visibleVideos = [];
+  } else if (subscription.plan_id === FREE_PLAN_ID) {
+    visibleVideos = [];
+  } else if (subscription.plan_id === STANDARD_PLAN_ID) {
     if (subscription.certification_id) {
       visibleVideos = videos.filter(
         (v) => v.certificationId === subscription.certification_id
       );
     }
-  } else if (plan === "All-Access") {
+  } else if (subscription.plan_id === FULL_ACCESS_PLAN_ID) {
     visibleVideos = videos;
   }
 
@@ -106,7 +111,7 @@ export default function ResourceVideo() {
       </div>
 
       {/* Free users: show pay button */}
-      {(!subscription || plan === "Free") ? (
+      {!subscription || subscription.plan_id === FREE_PLAN_ID ? (
         <div className="flex justify-center">
           {userId && (
             <Button

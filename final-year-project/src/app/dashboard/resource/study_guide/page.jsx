@@ -13,6 +13,11 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
+
+const FREE_PLAN_ID = "c000440f-2269-4e17-b445-e1c4510504d8";
+const STANDARD_PLAN_ID = "5623589a-885c-4ac1-8842-12247cadc89e";
+const FULL_ACCESS_PLAN_ID = "3ed77a5b-3fde-4bf8-ae4d-7952ec8197b6";
+
 const triggerStyle =
   "text-sm px-4 py-2 border border-input rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring data-[state=open]:border-primary data-[state=open]:text-primary";
 
@@ -34,8 +39,7 @@ export default function GuidePage() {
     topic: "",
   });
 
-  const [selectedCertificationType, setSelectedCertificationType] =
-    useState("");
+  const [selectedCertificationType, setSelectedCertificationType] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
 
   useEffect(() => {
@@ -51,10 +55,11 @@ export default function GuidePage() {
         setUserId(user.id);
         const { data: sub } = await supabase
           .from("subscriptions")
-          .select("plan_id, certification_id, plans(name)")
+          .select("plan_id, certification_id")
           .eq("user_id", user.id)
           .eq("status", "active")
           .maybeSingle();
+
         setSubscription(sub);
       }
 
@@ -119,15 +124,23 @@ export default function GuidePage() {
     fetchGuides();
   }, [filters, supabase]);
 
-  // filtered view based on subscription
+  // filtered view based on subscription using plan_id
   const getVisibleGuides = () => {
-    if (!subscription || subscription.plans?.name === "Free") return []; // free sees nothing
-    if (subscription.plans?.name === "Standard") {
+    if (!subscription) return [];
+
+    if (subscription.plan_id === FREE_PLAN_ID) return [];
+
+    if (subscription.plan_id === STANDARD_PLAN_ID) {
       return guides.filter(
         (g) => g.certificationId === subscription.certification_id
       );
     }
-    return guides; // All-Access sees everything
+
+    if (subscription.plan_id === FULL_ACCESS_PLAN_ID) {
+      return guides;
+    }
+
+    return [];
   };
 
   const visibleGuides = getVisibleGuides();
@@ -198,7 +211,7 @@ export default function GuidePage() {
           <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
           <p className="text-sm text-gray-600">Loading...</p>
         </div>
-      ) : !subscription || subscription.plans?.name === "Free" ? (
+      ) : !subscription || subscription.plan_id === FREE_PLAN_ID ? (
         <div className="flex justify-center">
           {userId && (
             <Button

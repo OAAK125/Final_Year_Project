@@ -16,6 +16,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Clock, FileText, X, Loader2 } from "lucide-react";
 
+// ✅ Plan IDs (keep centralized in /constants/planIds.js ideally)
+const FREE_PLAN_ID = "c000440f-2269-4e17-b445-e1c4510504d8";
+const STANDARD_PLAN_ID = "5623589a-885c-4ac1-8842-12247cadc89e";
+const FULL_ACCESS_PLAN_ID = "3ed77a5b-3fde-4bf8-ae4d-7952ec8197b6";
+
 export default function QuizInfoPage() {
   const router = useRouter();
   const { quizId } = useParams();
@@ -64,9 +69,10 @@ export default function QuizInfoPage() {
 
       setUserId(user.id);
 
+      // ✅ Fetch subscription by plan_id only
       const { data: sub } = await supabase
         .from("subscriptions")
-        .select("plan_id, certification_id, plans(name)")
+        .select("plan_id, certification_id")
         .eq("user_id", user.id)
         .eq("status", "active")
         .maybeSingle();
@@ -96,7 +102,6 @@ export default function QuizInfoPage() {
 
   const certification = quiz.certifications;
   const instructions = quiz.instructions?.split("\n").filter(Boolean) || [];
-  const plan = subscription?.plans?.name;
 
   const handleStartQuiz = async () => {
     const {
@@ -142,7 +147,7 @@ export default function QuizInfoPage() {
     }
 
     const { data: sessionData, error: sessionError } = await supabase
-      .from("trial_quiz_sessions") // ✅ correct table
+      .from("trial_quiz_sessions")
       .insert({
         user_id: user.id,
         certification_id: quiz.certification_id,
@@ -170,7 +175,7 @@ export default function QuizInfoPage() {
   };
 
   const renderButtons = () => {
-    if (!subscription || plan === "Free") {
+    if (!subscription || subscription.plan_id === FREE_PLAN_ID) {
       return (
         <div className="flex flex-col gap-3 w-full">
           <Button
@@ -196,7 +201,7 @@ export default function QuizInfoPage() {
       );
     }
 
-    if (plan === "Standard") {
+    if (subscription.plan_id === STANDARD_PLAN_ID) {
       if (subscription.certification_id === quiz.certification_id) {
         return (
           <Button
@@ -214,7 +219,7 @@ export default function QuizInfoPage() {
               size="lg"
               variant="outline"
               className="w-full text-base font-semibold"
-              onClick={() => router.push(`/quiz/${quizId}/trial_start`)}
+              onClick={handleStartTrialQuiz}
             >
               Start Trial Quiz
             </Button>
@@ -233,7 +238,7 @@ export default function QuizInfoPage() {
       }
     }
 
-    if (plan === "All-Access") {
+    if (subscription.plan_id === FULL_ACCESS_PLAN_ID) {
       return (
         <Button
           size="lg"

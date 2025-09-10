@@ -117,19 +117,27 @@ export default function Pricing() {
   async function handleDowngrade() {
     try {
       setSubmitting(true);
-      const res = await fetch("/api/subscriptions/downgrade", {
+      const res = await fetch("/api/paystack/downgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, plan_id: FREE_PLAN_ID }),
       });
+
+      const data = await res.json();
 
       if (!res.ok) {
         alert("Failed to downgrade to Free plan.");
         return;
       }
 
-      alert("Your subscription has been downgraded to Free.");
-      setUserPlan(FREE_PLAN_ID);
+      // ✅ Redirect like with Paystack subscribe
+      if (data?.redirect_url) {
+        window.location.href = data.redirect_url;
+      } else {
+        // fallback: just update state
+        setUserPlan(FREE_PLAN_ID);
+        router.push("/dashboard"); // optional fallback
+      }
     } catch (err) {
       console.error(err);
       alert("Something went wrong.");
@@ -167,7 +175,9 @@ export default function Pricing() {
                   <span className="my-3 block text-2xl font-semibold">
                     $0 / mo
                   </span>
-                  <CardDescription className="text-sm">Per user</CardDescription>
+                  <CardDescription className="text-sm">
+                    Per user
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <hr className="border-dashed my-4" />
@@ -233,8 +243,12 @@ export default function Pricing() {
               <div>
                 <CardHeader>
                   <CardTitle className="font-medium">Standard</CardTitle>
-                  <span className="my-3 block text-2xl font-semibold">$15 / mo</span>
-                  <CardDescription className="text-sm">Per user</CardDescription>
+                  <span className="my-3 block text-2xl font-semibold">
+                    $15 / mo
+                  </span>
+                  <CardDescription className="text-sm">
+                    Per user
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <hr className="border-dashed my-4" />
@@ -288,8 +302,12 @@ export default function Pricing() {
               <div>
                 <CardHeader>
                   <CardTitle className="font-medium">Full-Access</CardTitle>
-                  <span className="my-3 block text-2xl font-semibold">$40 / mo</span>
-                  <CardDescription className="text-sm">Per user</CardDescription>
+                  <span className="my-3 block text-2xl font-semibold">
+                    $40 / mo
+                  </span>
+                  <CardDescription className="text-sm">
+                    Per user
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <hr className="border-dashed my-4" />

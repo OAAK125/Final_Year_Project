@@ -22,6 +22,11 @@ import { cn } from "@/lib/utils";
 
 const questionOptions = [5, 10, 15, 20, 25];
 
+// ✅ Plan IDs (extract into constants/planIds.js if reused often)
+const FREE_PLAN_ID = "c000440f-2269-4e17-b445-e1c4510504d8";
+const STANDARD_PLAN_ID = "5623589a-885c-4ac1-8842-12247cadc89e";
+const FULL_ACCESS_PLAN_ID = "3ed77a5b-3fde-4bf8-ae4d-7952ec8197b6";
+
 export default function PersonalizeTop() {
   const supabase = createClient();
   const router = useRouter();
@@ -51,9 +56,10 @@ export default function PersonalizeTop() {
       if (userData?.user) {
         setUserId(userData.user.id);
 
+        // ✅ fetch only plan_id & certification_id
         const { data: sub } = await supabase
           .from("subscriptions")
-          .select("plan_id, certification_id, plans(name)")
+          .select("plan_id, certification_id")
           .eq("user_id", userData.user.id)
           .eq("status", "active")
           .maybeSingle();
@@ -90,7 +96,7 @@ export default function PersonalizeTop() {
     }
   };
 
-  const plan = subscription?.plans?.name;
+  const planId = subscription?.plan_id;
 
   if (loading) {
     return (
@@ -110,18 +116,21 @@ export default function PersonalizeTop() {
           Tailor your quiz based on your goals and preferences.
         </p>
 
-       
-        {(!subscription || plan === "Free" || plan === "Standard") && userId && (
-          <Button
-            className="w-full sm:w-auto"
-            onClick={() => router.push(`/pricing/${userId}`)}
-          >
-            Pay Full Access to continue
-          </Button>
-        )}
+        {/* Free & Standard users → Upsell button */}
+        {(!subscription ||
+          planId === FREE_PLAN_ID ||
+          planId === STANDARD_PLAN_ID) &&
+          userId && (
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() => router.push(`/pricing/${userId}`)}
+            >
+              Pay Full Access to continue
+            </Button>
+          )}
 
-        {/* Full Access users: show full dialog */}
-        {plan === "All-Access" && (
+        {/* Full Access users → Show config dialog */}
+        {planId === FULL_ACCESS_PLAN_ID && (
           <Dialog>
             <DialogTrigger asChild>
               <Button className="w-full sm:w-auto">Take a Custom Quiz</Button>
