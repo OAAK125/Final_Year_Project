@@ -1,5 +1,5 @@
 
-import { GenerateQuiz } from "@/ui/admin-dashboard/quiz-gen"
+import { GenerateQuestions } from "@/ui/admin-dashboard/questions-gen"
 import {QuizzesManagement} from "@/ui/admin-dashboard/quizzes-man"
 
 export default function QuizGenerator() {
@@ -7,7 +7,7 @@ export default function QuizGenerator() {
     return (
         <>
             <QuizzesManagement />
-            <GenerateQuiz />
+            <GenerateQuestions />
         </>
     )
 }

@@ -31,7 +31,7 @@ import {
 import { toast } from "sonner";
 
 
-export function GenerateQuiz() {
+export function GenerateQuestions({ showAI = false }) {
     const supabase = createClient();
     const [certifications, setCertifications] = useState([]);
     const [selectedCertification, setSelectedCertification] = useState("");
@@ -196,7 +196,7 @@ export function GenerateQuiz() {
                 options: q.options,
                 correct_answer: q.correctAnswer,
                 explanation: q.explanation || "",
-                is_active: true,
+                is_active: showAI,
                 sub_topic: "N/A"
             }));
 
@@ -206,7 +206,7 @@ export function GenerateQuiz() {
                     short_description: quizShortDescription,
                     long_description: quizLongDescription,
                     certification_id: selectedCertification,
-                    is_active: true,
+                    is_active: showAI,
 
                 })
                 .select();
@@ -246,7 +246,7 @@ export function GenerateQuiz() {
                 <div className="flex items-center space-x-2">
                     <Sparkles className="h-6 w-6 text-blue-500" />
                     <span className="text-sm text-muted-foreground">
-                        Create custom quizzes manually or with AI assistance
+                        Create custom quizzes {showAI ? "manually or with AI" : ""}
                     </span>
                 </div>
             </div>
@@ -336,12 +336,12 @@ export function GenerateQuiz() {
                         <CardDescription>
                             {questions.length > 0
                                 ? `${questions.length} question${questions.length !== 1 ? 's' : ''} added`
-                                : 'Add questions manually or generate with AI'}
+                                : showAI ?'Add questions manually or generate with AI':""}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {/* AI Generator Section */}
-                        <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-md border">
+                        {showAI && <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-md border">
                             <h3 className="font-medium flex items-center mb-2">
                                 <Sparkles className="h-4 w-4 mr-2 text-blue-500" />
                                 Questions Generator
@@ -369,7 +369,7 @@ export function GenerateQuiz() {
                                     )}
                                 </Button>
                             </div>
-                        </div>
+                        </div>}
 
                         {/* Manual Question Input */}
                         <div className="space-y-4">
