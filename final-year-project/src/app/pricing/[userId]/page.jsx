@@ -225,7 +225,102 @@ export default function Pricing() {
               </CardContent>
             </Card>
 
-            {/* Standard + Full (same as your existing code)... */}
+            {/* Standard Plan */}
+            <Card className="relative flex flex-col h-full justify-between">
+              <span className="bg-linear-to-br/increasing absolute inset-x-0 -top-3 mx-auto flex h-6 w-fit items-center rounded-full from-purple-400 to-amber-300 px-3 py-1 text-xs font-medium text-amber-950 ring-1 ring-inset ring-white/20 ring-offset-1 ring-offset-gray-950/5">
+                Popular
+              </span>
+              <div>
+                <CardHeader>
+                  <CardTitle className="font-medium">Standard</CardTitle>
+                  <span className="my-3 block text-2xl font-semibold">$15 / mo</span>
+                  <CardDescription className="text-sm">Per user</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <hr className="border-dashed my-4" />
+                  <ul className="list-outside space-y-3 text-sm text-left">
+                    {[
+                      "Everything from Free, plus:",
+                      "Full Access to 1 Chosen Certification",
+                      "Unlimited Practice Tests for that Cert",
+                      "Curated list of Resources for that Cert",
+                      "Question Flagging for Review",
+                    ].map((item, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <Check className="size-3" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4">
+                    <label className="mb-2 block text-sm font-medium">
+                      Choose Certification
+                    </label>
+                    <select
+                      className="w-full rounded-md border border-gray-300 p-2 text-sm"
+                      value={chosenCert}
+                      onChange={(e) => setChosenCert(e.target.value)}
+                    >
+                      <option value="">-- Select --</option>
+                      {certifications.map((cert) => (
+                        <option key={cert.id} value={cert.id}>
+                          {cert.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </CardContent>
+              </div>
+              <CardContent>
+                <Button
+                  variant="default"
+                  className="w-full"
+                  disabled={submitting}
+                  onClick={() => handleSubscribe(STANDARD_PLAN_ID, chosenCert)}
+                >
+                  {submitting ? "Processing..." : "Subscribe"}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Full-Access Plan */}
+            <Card className="flex flex-col h-full justify-between">
+              <div>
+                <CardHeader>
+                  <CardTitle className="font-medium">Full-Access</CardTitle>
+                  <span className="my-3 block text-2xl font-semibold">$40 / mo</span>
+                  <CardDescription className="text-sm">Per user</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <hr className="border-dashed my-4" />
+                  <ul className="list-outside space-y-3 text-sm text-left">
+                    {[
+                      "Everything from Standard, plus:",
+                      "Access to All Certifications",
+                      "Unlimited Practice Tests Across All Certs",
+                      "All Resources",
+                      "Question Flagging for Review",
+                      "Custom Quiz Builder",
+                    ].map((item, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <Check className="size-3" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </div>
+              <CardContent>
+                <Button
+                  variant="default"
+                  className="w-full"
+                  disabled={submitting}
+                  onClick={() => handleSubscribe(FULL_ACCESS_PLAN_ID)}
+                >
+                  {submitting ? "Processing..." : "Subscribe"}
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
