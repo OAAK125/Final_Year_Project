@@ -63,7 +63,7 @@ const adminMenu = [
     solidIcon: BiSolidUser,
   },
   {
-    name: "Manage Contributors",
+    name: "Manage Contributions",
     href: "/admin/contributors",
     icon: BiGroup,
     solidIcon: BiSolidGroup,
