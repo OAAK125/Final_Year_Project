@@ -79,9 +79,9 @@ export default function GetHelp() {
               </div>
 
               <div className="py-6">
-                <h3 className="font-medium">Can I retake certifications?</h3>
+                <h3 className="font-medium">How do I become a contributor?</h3>
                 <p className="text-muted-foreground mt-4">
-                  Yes. You can retake certifications at any time from your dashboard, unless otherwise restricted.
+                  Send an email to <a href="mailto:bugs@example.com" className="text-primary underline">bugs@example.com</a> applying with your credenitials. 
                 </p>
               </div>
 

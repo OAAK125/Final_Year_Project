@@ -59,6 +59,7 @@ export default function Pricing() {
                                         'Unlimited Practice Tests for that Cert',
                                         'Curated list of Resources for that Cert',
                                         'Question Flagging for Review',
+                                        "Chance to be a Contributor",
                                     
                                     ].map((item, index) => (
                                         <li key={index} className="flex items-center gap-2">

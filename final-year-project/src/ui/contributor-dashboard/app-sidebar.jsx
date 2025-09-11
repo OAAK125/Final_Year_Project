@@ -20,15 +20,12 @@ import { NavUser } from "@/ui/contributor-dashboard/nav-user"
 
 // Icons
 import {
-  BiSolidCertification,
   BiSpreadsheet,
   BiSolidSpreadsheet,
   BiHelpCircle,
   BiSolidHelpCircle,
-  BiUser,
-  BiSolidUser,
-  BiGroup,
-  BiSolidGroup,
+  BiMoney,
+  BiSoildMoney,
 } from "react-icons/bi"
 
 const user = {
@@ -39,16 +36,22 @@ const user = {
 
 const contributorMenu = [
    {
-    name: "Quiz Generator",
-    href: "/contributor/quiz-generator",
+    name: "Create Questions",
+    href: "/contributor/create-questions",
     icon: BiSpreadsheet,
     solidIcon: BiSolidSpreadsheet,
   },
   {
-    name: "Quiz Questions",
-    href: "/contributor/questions",
+    name: "Edit Questions",
+    href: "/contributor/edit-questions",
     icon: BiHelpCircle,
     solidIcon: BiSolidHelpCircle,
+  },
+  {
+    name: "Payments",
+    href: "/contributor/payment",
+    icon: BiMoney,
+    solidIcon: BiSoildMoney,
   }
 ]
 

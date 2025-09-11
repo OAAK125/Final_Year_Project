@@ -130,7 +130,7 @@ export default function Pricing() {
         return;
       }
 
-      // ✅ Redirect like with Paystack subscribe
+      
       if (data?.redirect_url) {
         window.location.href = data.redirect_url;
       } else {
@@ -319,6 +319,7 @@ export default function Pricing() {
                       "All Resources",
                       "Question Flagging for Review",
                       "Custom Quiz Builder",
+                      "Chance to be a Contributor"
                     ].map((item, index) => (
                       <li key={index} className="flex items-center gap-2">
                         <Check className="size-3" />

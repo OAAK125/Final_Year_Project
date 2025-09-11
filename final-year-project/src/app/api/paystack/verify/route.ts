@@ -13,7 +13,6 @@ export async function POST(req: Request) {
     const { reference } = await req.json();
     console.info("🔵 Received verify request for reference:", reference);
 
-    // ✅ Verify with Paystack
     const verifyRes = await fetch(
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
@@ -24,7 +23,7 @@ export async function POST(req: Request) {
     const json = await verifyRes.json();
     console.info("🔵 Full Paystack Verify Response:", JSON.stringify(json, null, 2));
 
-    // ✅ Safer status check
+
     if (!json.status || json.data?.status !== "success") {
       console.error("❌ Payment verification failed:", {
         httpOk: verifyRes.ok,
@@ -39,7 +38,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Extract metadata (must be passed when initializing the transaction)
     const { user_id, plan_id, certification_id } = json.data?.metadata || {};
     if (!user_id || !plan_id) {
       console.error("❌ Missing metadata:", json.data?.metadata);
@@ -49,7 +47,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Lookup plan details
+
     const { data: plan, error: planError } = await supabase
       .from("plans")
       .select("id, name")
@@ -61,7 +59,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Plan not found" }, { status: 400 });
     }
 
-    // ✅ Upsert subscription (ensure subscriptions.user_id is UNIQUE in DB)
     const { data: sub, error: subError } = await supabase
       .from("subscriptions")
       .upsert(

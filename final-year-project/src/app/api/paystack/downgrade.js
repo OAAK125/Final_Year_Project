@@ -26,7 +26,6 @@ export async function POST(req) {
     return NextResponse.json({ error: "Failed to downgrade" }, { status: 500 });
   }
 
-  // ✅ redirect to your webhook (same as Paystack return URL)
   return NextResponse.json({
     redirect_url: process.env.PAYSTACK_WEBHOOK_RETURN_URL || "/dashboard",
   });

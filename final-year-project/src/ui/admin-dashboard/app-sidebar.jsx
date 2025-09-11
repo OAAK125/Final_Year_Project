@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { usePathname } from "next/navigation"
+import * as React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 import {
   Sidebar,
@@ -14,9 +14,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
-import { NavUser } from "@/ui/admin-dashboard/nav-user"
+import { NavUser } from "@/ui/admin-dashboard/nav-user";
 
 // Icons
 import {
@@ -29,13 +29,13 @@ import {
   BiSolidUser,
   BiGroup,
   BiSolidGroup,
-} from "react-icons/bi"
+} from "react-icons/bi";
 
 const user = {
   name: "Admin User",
   email: "admin@example.com",
   avatar: "/avatars/admin.jpg",
-}
+};
 
 const adminMenu = [
   {
@@ -62,16 +62,16 @@ const adminMenu = [
     icon: BiUser,
     solidIcon: BiSolidUser,
   },
-  // {
-  //   name: "Manage Contributors",
-  //   href: "/admin/contributors",
-  //   icon: BiGroup,
-  //   solidIcon: BiSolidGroup,
-  // },
-]
+  {
+    name: "Manage Contributors",
+    href: "/admin/contributors",
+    icon: BiGroup,
+    solidIcon: BiSolidGroup,
+  },
+];
 
 function NavGroup({ label, items }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <SidebarMenu>
@@ -81,8 +81,8 @@ function NavGroup({ label, items }) {
         </div>
       )}
       {items.map(({ name, href, icon, solidIcon }, idx) => {
-        const isActive = pathname === href
-        const IconToUse = isActive && solidIcon ? solidIcon : icon
+        const isActive = pathname === href;
+        const IconToUse = isActive && solidIcon ? solidIcon : icon;
 
         return (
           <SidebarMenuItem key={idx}>
@@ -101,10 +101,10 @@ function NavGroup({ label, items }) {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-        )
+        );
       })}
     </SidebarMenu>
-  )
+  );
 }
 
 export function AppSidebar({ ...props }) {
@@ -113,7 +113,10 @@ export function AppSidebar({ ...props }) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="data-[slot=sidebar-menu-button]:!p-1.5" asChild>
+            <SidebarMenuButton
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              asChild
+            >
               <div className="flex items-center gap-2">
                 <Image
                   src="/assets/quiz/logo-symbol.svg"
@@ -123,7 +126,9 @@ export function AppSidebar({ ...props }) {
                   className="shrink-0"
                   priority
                 />
-                <span className="text-base font-semibold">CertifyPrep Admin</span>
+                <span className="text-base font-semibold">
+                  CertifyPrep Admin
+                </span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -140,5 +145,5 @@ export function AppSidebar({ ...props }) {
         <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

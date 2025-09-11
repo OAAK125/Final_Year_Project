@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Pass metadata as object (not stringified)
+
     const paystackRes = await fetch(
       "https://api.paystack.co/transaction/initialize",
       {
