@@ -88,7 +88,7 @@ export default function GetHelp() {
               <div className="py-6">
                 <h3 className="font-medium">How do I report a bug or error?</h3>
                 <p className="text-muted-foreground mt-4">
-                  Send a message to <a href="mailto:bugs@example.com" className="text-primary underline">bugs@example.com</a> with details and screenshots if possible. We appreciate your help!
+                  Send a message to <a href="mailto:certifycontact@gmail.com" className="text-primary underline">certifycontact@gmail.com</a> with details and screenshots if possible. We appreciate your help!
                 </p>
               </div>
             </div>
