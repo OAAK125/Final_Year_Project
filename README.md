@@ -1,4 +1,7 @@
 # Online Platform for IT Certification Preparation (Final Year Project)
+> [!WARNING]
+> This project was done on the free tier of Supabase and Vercel and is therefore paused. Contact me if you want to resume it.
+
 
 ## Contributors 
 - Obaapa Ama Ampaben-Kyereme
@@ -72,6 +75,34 @@ The platform enables admins to:
 ## Conclusion
 This project demonstrates a holistic approach to IT certification exam preparation and/or serves as a basis for improvements on online learning in this space. 
 
+## Screenshots
+<img width="1478" height="818" alt="Screenshot 2025-09-10 150559" src="https://github.com/user-attachments/assets/1202665c-eed1-46ca-8ea4-7254eb9a4765" />
+
+<img width="749" height="775" alt="Screenshot 2025-09-10 150632" src="https://github.com/user-attachments/assets/19e6e3b3-90dc-4269-9379-556d1d2d0331" />
+
+<img width="439" height="615" alt="Screenshot 2025-09-10 151110" src="https://github.com/user-attachments/assets/bd941714-7aed-487d-8238-8f00c2677463" />
+
+<img width="920" height="584" alt="Screenshot 2025-09-10 151512" src="https://github.com/user-attachments/assets/7b9158db-873b-4ca1-a3f5-389189a06476" />
+
+<img width="714" height="463" alt="Screenshot 2025-09-10 151608" src="https://github.com/user-attachments/assets/1f9f00f7-6570-442e-8ffe-73dc0d3bcf9b" />
+
+<img width="709" height="526" alt="Screenshot 2025-09-10 151652" src="https://github.com/user-attachments/assets/f01613ba-4a7b-410d-8edc-79d654338cb9" />
+
+<img width="714" height="463" alt="Screenshot 2025-09-10 151608" src="https://github.com/user-attachments/assets/4084455b-c799-4a05-8fb7-016a9033e93c" />
+
+<img width="709" height="526" alt="Screenshot 2025-09-10 151652" src="https://github.com/user-attachments/assets/9522a0a9-580d-4c1f-8ceb-e6e54600d740" />
+
+<img width="732" height="549" alt="Screenshot 2025-09-10 151904" src="https://github.com/user-attachments/assets/328f55f6-dbf3-46d2-b835-a57abf1043eb" />
+
+<img width="993" height="731" alt="Screenshot 2025-09-10 152939" src="https://github.com/user-attachments/assets/7a0403ba-ce75-4e7e-a9b3-0a26e0fc7e96" />
+
+<img width="1832" height="708" alt="Screenshot 2025-09-10 204905" src="https://github.com/user-attachments/assets/d69c7d4e-3961-473a-9a7c-e5aceca331bb" />
+
+<img width="1863" height="723" alt="Screenshot 2025-09-10 204919" src="https://github.com/user-attachments/assets/ee268f55-03cd-46b6-9649-a7726efc94f2" />
+
+<img width="1437" height="788" alt="Screenshot 2025-09-10 205123" src="https://github.com/user-attachments/assets/51dd264d-00c8-4590-a9f3-be9b18f12db3" />
+
+<img width="1149" height="800" alt="Screenshot 2025-09-10 220811" src="https://github.com/user-attachments/assets/c1578ef6-9ed2-42ce-b0e1-568168083814" />
 
 ## Link
 [Website](https://final-year-project-olive-omega.vercel.app/)
