@@ -1,7 +1,10 @@
 # Online Platform for IT Certification Preparation (Final Year Project)
 > [!WARNING]
-> This project was done on the free tier of Supabase and Vercel and is therefore paused. Contact me if you want to resume it.
+> This project was done on the free tier of Supabase, therefore the backend is paused. Contact me if you want to resume it.
+> The landing page is still available.
 
+## Link
+[Website](https://final-year-project-olive-omega.vercel.app/)
 
 ## Contributors 
 - Obaapa Ama Ampaben-Kyereme
